@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowsClockwise, ArrowLeft, CaretDown, Check, FloppyDisk, Star, X, PencilSimpleLine, DownloadSimple, Printer } from '@phosphor-icons/react'
 import { MAX_NAME_LENGTH, MAX_NAMES, MAX_FAVORITES } from '../state/projectStore'
+import ColorSwatchPicker from '../components/ColorSwatchPicker'
 import { useAuth } from '../state/useAuth'
 import { isSupabaseConfigured } from '../lib/supabase'
 import { SAVE_CAP } from '../lib/savedProjects'
@@ -390,12 +391,15 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
           </div>
 
           {backgroundType === 'color' && (
-            <input
-              type="color"
-              value={backgroundValue}
-              onChange={(e) => setStyle({ backgroundValue: e.target.value })}
-              className="color-input"
-            />
+            <div className="bg-color-row">
+              <ColorSwatchPicker
+                color={backgroundValue}
+                onChange={(c) => setStyle({ backgroundValue: c })}
+                size={36}
+                ariaLabel="Background color"
+              />
+              <span className="bg-color-hex">{backgroundValue.toUpperCase()}</span>
+            </div>
           )}
 
           {backgroundType === 'pattern' && (
@@ -513,19 +517,22 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
               />
               <span className="palette-name">{p.label}</span>
               {p.custom ? (
-                <span className="swatches custom-swatches">
+                <span
+                  className="swatches custom-swatches"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   {(project.style.customPaletteColors || []).map((c, i) => (
-                    <input
+                    <ColorSwatchPicker
                       key={i}
-                      type="color"
-                      value={c}
-                      onChange={(e) => {
-                        const next = [...(project.style.customPaletteColors || [])]
-                        next[i] = e.target.value
-                        setStyle({ paletteId: 'custom', customPaletteColors: next })
+                      color={c}
+                      onChange={(next) => {
+                        const cols = [...(project.style.customPaletteColors || [])]
+                        cols[i] = next
+                        setStyle({ paletteId: 'custom', customPaletteColors: cols })
                       }}
-                      aria-label={`Custom color ${i + 1}`}
-                      onClick={(e) => e.stopPropagation()}
+                      size={22}
+                      ariaLabel={`Custom color ${i + 1}`}
+                      align={i >= 2 ? 'right' : 'left'}
                     />
                   ))}
                 </span>
