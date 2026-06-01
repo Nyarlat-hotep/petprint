@@ -8,11 +8,12 @@ const SIZE_TIERS = [
   { label: 'tiny',   weight: 20, multiplier: 0.55 },
 ]
 
+// Floor multiplier removed: rendered fontSize is clamped to a minimum readable
+// pixel size in renderWordCloud, so even the smallest fill tier stays legible.
 const FILL_TIERS = [
-  { label: 'small', weight: 18, multiplier: 0.75 },
-  { label: 'tiny',  weight: 32, multiplier: 0.5 },
-  { label: 'micro', weight: 30, multiplier: 0.35 },
-  { label: 'nano',  weight: 20, multiplier: 0.25 },
+  { label: 'small',  weight: 30, multiplier: 0.85 },
+  { label: 'tiny',   weight: 38, multiplier: 0.6 },
+  { label: 'micro',  weight: 32, multiplier: 0.45 },
 ]
 
 const ROT_TIERS = [

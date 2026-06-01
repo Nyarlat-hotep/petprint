@@ -47,7 +47,7 @@ export default function SplashBackground() {
     <div className="splash-showcase" aria-hidden="true">
       {project && (
         <div className="splash-showcase-cloud">
-          <WordCloudCanvas project={project} width={520} />
+          <WordCloudCanvas project={project} maxWidth={520} maxHeight={520} />
         </div>
       )}
     </div>

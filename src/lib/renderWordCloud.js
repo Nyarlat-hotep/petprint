@@ -66,19 +66,28 @@ export async function renderWordCloudToCanvas({
   // fillPasses so the total number of occurrences (N × (1 + fillPasses))
   // hits a minimum density target — keeps the cloud packed even when the
   // user only typed a handful of names.
-  const TARGET_OCCURRENCES = 200
+  const TARGET_OCCURRENCES = 240
   const n = Math.max(1, names.length)
-  const fillPasses = Math.max(14, Math.ceil(TARGET_OCCURRENCES / n) - 1)
+  const fillPasses = Math.max(16, Math.ceil(TARGET_OCCURRENCES / n) - 1)
   const occurrences = assignWords(names, seed, FONTS, palette, { fillPasses })
-  // Convert weight multipliers into actual font sizes (canvas px)
+  // Convert weight multipliers into actual font sizes (canvas px).
+  // Floor at a minimum readable pixel size — scales with canvas so tiny
+  // exports don't drop below ~10px, big exports don't keep words tinier
+  // than necessary.
   const baseFontUnit = w / 26
+  const MIN_FONT_PX = Math.max(11, Math.round(w / 70))
   const words = occurrences.map((a) => ({
     ...a,
-    fontSize: a.weight * baseFontUnit,
+    fontSize: Math.max(MIN_FONT_PX, a.weight * baseFontUnit),
   }))
 
-  // Compute placements (no drawing yet; uses ctx only for text measurement)
-  const placements = packWords(words, scaledMask, w, h, ctx, seed)
+  // Compute placements (no drawing yet; uses ctx only for text measurement).
+  // The packer runs the primary words then sweeps any remaining gaps with
+  // additional small words drawn from the same name pool.
+  const placements = packWords(
+    words, scaledMask, w, h, ctx, seed,
+    { minFontPx: MIN_FONT_PX, names: occurrences, fonts: FONTS, palette },
+  )
 
   // Compose final canvas: background → silhouette tint → words
   ctx.clearRect(0, 0, w, h)
@@ -162,7 +171,7 @@ export async function renderWordCloudToCanvas({
   ctx.restore()
 }
 
-function packWords(words, mask, maskW, maskH, ctx, seed) {
+function packWords(words, mask, maskW, maskH, ctx, seed, fillOpts = {}) {
   const rng = makeRng(seed + 7)
   // Largest first so big anchors place before small ones crowd in. Favorites
   // get sorted up front (even ahead of equal-size non-favorites) so they claim
@@ -274,6 +283,38 @@ function packWords(words, mask, maskW, maskH, ctx, seed) {
     if (hit) {
       placed.push({ x0: hit.x0, y0: hit.y0, x1: hit.x1, y1: hit.y1 })
       result.push({ ...word, cx: hit.cx, cy: hit.cy })
+    }
+  }
+
+  // ── Gap-fill sweep ─────────────────────────────────────────────────────
+  // After the main placement, keep stuffing small extras into whatever empty
+  // space remains. Stop after N consecutive failures — that means we've
+  // saturated and any new word at this min size won't fit.
+  const minFontPx = fillOpts.minFontPx
+  if (minFontPx && result.length > 0) {
+    // Random size between min and ~2× min, so the fill doesn't look uniform.
+    const sizeFloor = minFontPx
+    const sizeCeil = minFontPx * 2.1
+    const MAX_CONSECUTIVE_FAILS = 60
+    const MAX_TOTAL_ATTEMPTS = 800
+    let fails = 0
+    let total = 0
+    while (fails < MAX_CONSECUTIVE_FAILS && total < MAX_TOTAL_ATTEMPTS) {
+      total++
+      // Pick a random already-placed template so we inherit text/font/color.
+      const template = result[Math.floor(rng() * result.length)]
+      const fontSize = sizeFloor + rng() * (sizeCeil - sizeFloor)
+      const rotation = rng() < 0.78 ? 0 : 90
+      const word = { ...template, fontSize, rotation, favorite: false }
+      remeasure(word)
+      const hit = tryPlace(word, 60)
+      if (hit) {
+        placed.push({ x0: hit.x0, y0: hit.y0, x1: hit.x1, y1: hit.y1 })
+        result.push({ ...word, cx: hit.cx, cy: hit.cy })
+        fails = 0
+      } else {
+        fails++
+      }
     }
   }
 
