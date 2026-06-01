@@ -28,7 +28,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  background: #eff6ff;
+  /* background: #eff6ff; */
   border: 1px solid #bfdbfe;
   border-radius: 12px;
   padding: 12px 12px 0 12px;
@@ -113,7 +113,8 @@
   gap: 6px;
   padding: 4px;
   border-radius: 999px;
-  background: #dbeafe;
+  /* background: #dbeafe; */
+  border: 1px solid #bfdbfe;
   color: #0f172a;
   font-size: 13px;
   width: 100%;
@@ -147,11 +148,11 @@
 
 .style-step .names-chip .chip-star {
   background: transparent;
-  color: #e11d48;
+  color: #0a2872;
 }
 
 .style-step .names-chip .chip-star:hover:not(:disabled) {
-  background: rgba(250, 250, 250, 0.5);
+  background: #bfdbfe;
 }
 
 .style-step .names-chip .chip-star:disabled {
@@ -160,11 +161,11 @@
 }
 
 .style-step .names-chip.is-fav .chip-star {
-  color: #be123c;
+  color: #0a2872;
 }
 
 .style-step .names-chip .chip-x {
-  background: #93c5fd;
+  /* background: #bfdbfe; */
   color: #0a2872;
 }
 
@@ -174,11 +175,11 @@
 }
 
 .style-step .names-chip .chip-x:hover {
-  background: #60a5fa;
+  background: #bfdbfe;
 }
 
 .style-step .names-chip.is-fav .chip-x:hover {
-  background: #fb7185;
+  background: #bfdbfe;
 }
 
 /* Mobile drawer trigger (hidden on desktop) */
@@ -254,16 +255,25 @@
 }
 
 .style-step fieldset {
+  position: relative;
   border: 1px solid #bfdbfe;
   border-radius: 12px;
   padding: 12px;
   margin: 0;
 }
 
+/* Lift the legend out of the fieldset's intrinsic layout so its line-height
+   doesn't shift the top border down. Border now starts at the column top —
+   matches the preview container next to it. */
 .style-step legend {
+  position: absolute;
+  top: -8px;
+  left: 10px;
   font-size: 12px;
   color: #888;
   padding: 0 6px;
+  background: #fff;
+  line-height: 1;
 }
 
 .style-step .bg-type {
@@ -294,7 +304,7 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 13px;
   letter-spacing: 0.04em;
-  color: #0259DD;
+  color: #5a5a5a;
   font-weight: 600;
 }
 
@@ -343,7 +353,7 @@
 
 .style-step .pattern-scale-value {
   font-variant-numeric: tabular-nums;
-  color: #0259DD;
+  color: #5a5a5a;
   font-weight: 600;
 }
 
@@ -659,7 +669,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: #eff6ff;
+  /* background: #eff6ff; */
   border-radius: 12px;
   padding: 16px;
   min-height: 400px;
@@ -685,9 +695,9 @@
 .style-step .align-group {
   display: inline-flex;
   align-items: center;
-  gap: 0;
+  gap: 2px;
   background: #fff;
-  border: 1px solid #93c5fd;
+  border: 1px solid #bfdbfe;
   border-radius: 6px;
   padding: 2px;
 }
@@ -728,7 +738,7 @@
   align-items: center;
   justify-content: center;
   background: #fff;
-  border: 1px solid #93c5fd;
+  border: 1px solid #bfdbfe;
   border-radius: 6px;
   color: #0259DD;
   cursor: pointer;

@@ -178,7 +178,7 @@ function NamesPanel({ project, dispatch }) {
       <p className="names-hint">
         Tap{' '}
         <span className="nobreak">the <Star size={12} weight="fill" /> to</span>
-        {' '}make a name a favorite — the goodest names show up biggest.
+        {' '}make a name a favorite — your favorite names show up biggest.
         ({favoriteCount}/{MAX_FAVORITES})
       </p>
       <input

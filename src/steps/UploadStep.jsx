@@ -94,7 +94,7 @@ export default function UploadStep({ project, dispatch }) {
           <img src={project.photoUrl} alt="Uploaded pet" className="preview" />
         ) : (
           <div className="prompt">
-            <p><strong>Drop a photo of your goodest one here</strong></p>
+            <p><strong>Drop a photo of your fur baby here</strong></p>
             <p className="muted">or click to fetch one</p>
           </div>
         )}
