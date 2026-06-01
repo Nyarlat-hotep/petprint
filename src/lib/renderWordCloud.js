@@ -195,6 +195,11 @@ function packWords(words, mask, maskW, maskH, ctx, seed, fillOpts = {}) {
 
   // Try placing a single word at its current measured size + rotation. Returns
   // {cx, cy, x0, y0, x1, y1} on success, null otherwise.
+  //
+  // Sampling strategy: Archimedean spiral around a random anchor. Each
+  // candidate position is adjacent to where the previous one tried, so once
+  // the silhouette starts filling up, candidates concentrate next to already-
+  // placed words — finding the tight gaps random sampling would miss.
   function tryPlace(word, maxAttempts) {
     const isRotated = word.rotation === 90
     const boxW = isRotated ? word.mh : word.mw
@@ -205,43 +210,68 @@ function packWords(words, mask, maskW, maskH, ctx, seed, fillOpts = {}) {
     // Word is wider than the silhouette — no point sampling positions.
     if (boxW > maskW - padding * 2 || boxH > maskH - padding * 2) return null
 
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      const cx = halfW + rng() * (maskW - boxW)
-      const cy = halfH + rng() * (maskH - boxH)
-      const x0 = cx - halfW
-      const y0 = cy - halfH
-      const x1 = cx + halfW
-      const y1 = cy + halfH
+    // Check a single candidate centre against mask + overlap. Returns hit or null.
+    const checkAt = (cx, cy) => {
+      const x0 = cx - halfW, y0 = cy - halfH
+      const x1 = cx + halfW, y1 = cy + halfH
+      if (x0 < padding || y0 < padding || x1 > maskW - padding || y1 > maskH - padding) return null
 
-      if (x0 < padding || y0 < padding || x1 > maskW - padding || y1 > maskH - padding) continue
-
-      // Sample bounding box for silhouette containment. Sample density
-      // scales with box size (~one sample every 5px) so wide words can't
-      // straddle gaps in multi-region shapes (e.g. between paw pads).
+      // Sample bounding box for silhouette containment. Sample density scales
+      // with box size (~one sample every 5px) so wide words can't straddle gaps
+      // in multi-region shapes (e.g. between paw pads).
       const Nx = Math.max(5, Math.ceil(boxW / 5))
       const Ny = Math.max(5, Math.ceil(boxH / 5))
-      let inMask = true
-      for (let i = 0; i <= Nx && inMask; i++) {
-        for (let j = 0; j <= Ny && inMask; j++) {
+      for (let i = 0; i <= Nx; i++) {
+        for (let j = 0; j <= Ny; j++) {
           const sx = Math.floor(x0 + (i / Nx) * boxW)
           const sy = Math.floor(y0 + (j / Ny) * boxH)
-          if (sx < 0 || sx >= maskW || sy < 0 || sy >= maskH || !mask[sy * maskW + sx]) {
-            inMask = false
-          }
+          if (sx < 0 || sx >= maskW || sy < 0 || sy >= maskH || !mask[sy * maskW + sx]) return null
         }
       }
-      if (!inMask) continue
-
-      let overlaps = false
       for (const p of placed) {
         if (!(x1 + padding <= p.x0 || x0 >= p.x1 + padding || y1 + padding <= p.y0 || y0 >= p.y1 + padding)) {
-          overlaps = true
-          break
+          return null
         }
       }
-      if (overlaps) continue
-
       return { cx, cy, x0, y0, x1, y1 }
+    }
+
+    // Spiral parameters. `a` controls radial growth per radian — keep ~1/6 of
+    // the smaller dimension so consecutive turns are about one word apart.
+    const a = Math.max(1.5, Math.min(boxW, boxH) / 6)
+    const arcStepPx = Math.max(3, Math.min(boxW, boxH) / 4)
+    const maxRadius = Math.hypot(maskW, maskH)
+    // Split the attempt budget across a few anchors so we don't get stuck in
+    // one corner if the silhouette is multi-region.
+    const ATTEMPTS_PER_ANCHOR = 240
+    const numAnchors = Math.max(1, Math.ceil(maxAttempts / ATTEMPTS_PER_ANCHOR))
+    let attemptsLeft = maxAttempts
+
+    for (let anchor = 0; anchor < numAnchors && attemptsLeft > 0; anchor++) {
+      const ax = halfW + rng() * (maskW - boxW)
+      const ay = halfH + rng() * (maskH - boxH)
+
+      // Try the anchor itself first (handy when the anchor is already in a gap).
+      attemptsLeft--
+      const direct = checkAt(ax, ay)
+      if (direct) return direct
+
+      // Spiral outward. Step size in radians = arcStepPx / r so the arc length
+      // between checks stays roughly constant as r grows.
+      let t = 0
+      while (attemptsLeft > 0) {
+        // Advance angle by enough to cover ~arcStepPx of arc.
+        const r = a * t
+        const stepT = Math.max(0.08, arcStepPx / Math.max(r, 1))
+        t += stepT
+        const r2 = a * t
+        if (r2 > maxRadius) break
+        const cx = ax + r2 * Math.cos(t)
+        const cy = ay + r2 * Math.sin(t)
+        attemptsLeft--
+        const hit = checkAt(cx, cy)
+        if (hit) return hit
+      }
     }
     return null
   }
