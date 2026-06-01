@@ -24,7 +24,7 @@
 
 .extract-step .paw-loader svg {
   position: absolute;
-  color: #0891b2;
+  color: #0259DD;
   opacity: 0;
   animation-duration: 2.4s;
   animation-timing-function: ease-in-out;
@@ -93,14 +93,14 @@
 .extract-step .progress-bar {
   width: 240px;
   height: 8px;
-  background: #cffafe;
+  background: #dbeafe;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .extract-step .progress-fill {
   height: 100%;
-  background: #0891b2;
+  background: #0259DD;
   transition: width 0.2s ease;
 }
 
@@ -136,7 +136,7 @@
   max-height: 280px;
   object-fit: contain;
   border-radius: 8px;
-  border: 1px solid #a5f3fc;
+  border: 1px solid #bfdbfe;
 }
 
 .extract-step .thumb.checker {
@@ -154,9 +154,9 @@
   justify-content: center;
   gap: 6px;
   padding: 12px 18px;
-  border: 1px solid #67e8f9;
+  border: 1px solid #93c5fd;
   background: #fff;
-  color: #0891b2;
+  color: #0259DD;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
@@ -170,8 +170,8 @@
 }
 
 .extract-step .refine-link:not(:disabled):hover {
-  background: #ecfeff;
-  border-color: #22d3ee;
+  background: #eff6ff;
+  border-color: #60a5fa;
 }
 
 .extract-step .refine-link:disabled {
@@ -183,8 +183,8 @@
   align-self: stretch;
   margin: auto -32px -32px;
   padding: 16px 32px;
-  border-top: 1px solid #a5f3fc;
-  background: #ecfeff;
+  border-top: 1px solid #bfdbfe;
+  background: #eff6ff;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -199,21 +199,21 @@
   padding: 10px 12px;
   border: 0;
   background: transparent;
-  color: #0891b2;
+  color: #0259DD;
   border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
 }
 
 .extract-step .step-footer .back:hover {
-  background: #cffafe;
+  background: #dbeafe;
 }
 
 .extract-step .step-footer .primary {
   padding: 10px 24px;
   border-radius: 8px;
-  border: 1px solid #0891b2;
-  background: #0891b2;
+  border: 1px solid #0259DD;
+  background: #0259DD;
   color: #fff;
   font-weight: 600;
 }
@@ -224,7 +224,7 @@
 }
 
 .extract-step .step-footer .primary:not(:disabled):hover {
-  background: #0e7490;
+  background: #0147b8;
 }
 
 @media (max-width: 720px) {

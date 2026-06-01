@@ -11,7 +11,7 @@
 }
 
 .splash-pane-left {
-  background: #ecfeff;
+  background: #eff6ff;
   border-radius: 24px;
   display: flex;
   align-items: center;
@@ -50,7 +50,7 @@
   font-size: 36px;
   text-align: center;
   letter-spacing: 0.01em;
-  color: #0891b2;
+  color: #0259DD;
 }
 
 .splash-tagline {
@@ -78,14 +78,14 @@
 .splash-form input {
   padding: 10px 12px;
   font-size: 14px;
-  border: 1px solid #67e8f9;
+  border: 1px solid #93c5fd;
   border-radius: 8px;
   background: #fff;
   outline: none;
 }
 
 .splash-form input:focus {
-  border-color: #0891b2;
+  border-color: #0259DD;
 }
 
 .splash-error {
@@ -97,7 +97,7 @@
 .splash-primary {
   margin-top: 4px;
   padding: 11px;
-  background: #0891b2;
+  background: #0259DD;
   color: #fff;
   border: 0;
   border-radius: 8px;
@@ -111,7 +111,7 @@
 }
 
 .splash-primary:not(:disabled):hover {
-  background: #0e7490;
+  background: #0147b8;
 }
 
 .splash-divider {
@@ -127,7 +127,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: #a5f3fc;
+  background: #bfdbfe;
 }
 
 .splash-google {
@@ -137,7 +137,7 @@
   justify-content: center;
   gap: 8px;
   padding: 11px;
-  border: 1px solid #67e8f9;
+  border: 1px solid #93c5fd;
   background: #fff;
   border-radius: 8px;
   font-weight: 500;
@@ -146,8 +146,8 @@
 }
 
 .splash-google:not(:disabled):hover {
-  background: #ecfeff;
-  border-color: #22d3ee;
+  background: #eff6ff;
+  border-color: #60a5fa;
 }
 
 .splash-google:disabled {
@@ -165,7 +165,7 @@
 .splash-toggle button {
   background: transparent;
   border: 0;
-  color: #0891b2;
+  color: #0259DD;
   font-weight: 600;
   font: inherit;
   cursor: pointer;
@@ -178,7 +178,7 @@
   align-self: flex-end;
   background: transparent;
   border: 0;
-  color: #0891b2;
+  color: #0259DD;
   font-size: 13px;
   cursor: pointer;
   padding: 0;
@@ -207,7 +207,7 @@
 }
 
 .splash-legal a:hover {
-  color: #0891b2;
+  color: #0259DD;
 }
 
 @keyframes splash-pop-in {

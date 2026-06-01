@@ -1,7 +1,7 @@
 .color-swatch-trigger {
   display: inline-block;
   padding: 0;
-  border: 1px solid #67e8f9;
+  border: 1px solid #93c5fd;
   border-radius: 6px;
   cursor: pointer;
   vertical-align: middle;
@@ -9,7 +9,7 @@
 }
 
 .color-swatch-trigger:focus-visible {
-  outline: 2px solid #0891b2;
+  outline: 2px solid #0259DD;
   outline-offset: 2px;
 }
 
@@ -18,7 +18,7 @@
   z-index: 200;
   width: 220px;
   background: #fff;
-  border: 1px solid #a5f3fc;
+  border: 1px solid #bfdbfe;
   border-radius: 10px;
   box-shadow: 0 12px 32px rgba(20, 35, 60, 0.18), 0 2px 6px rgba(20, 35, 60, 0.08);
   padding: 12px;
@@ -45,14 +45,14 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #ecfeff;
-  border: 1px solid #a5f3fc;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
   border-radius: 6px;
   padding: 4px 8px;
 }
 
 .color-swatch-hex-row:focus-within {
-  border-color: #0891b2;
+  border-color: #0259DD;
 }
 
 .color-swatch-hex-hash {

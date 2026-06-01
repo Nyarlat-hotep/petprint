@@ -8,9 +8,9 @@
   gap: 6px;
   padding: 6px 12px;
   border-radius: 6px;
-  border: 1px solid #67e8f9;
+  border: 1px solid #93c5fd;
   background: #fff;
-  color: #0891b2;
+  color: #0259DD;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -18,7 +18,7 @@
 }
 
 .saves-trigger:hover {
-  background: #cffafe;
+  background: #dbeafe;
 }
 
 .saves-trigger:disabled {
@@ -28,7 +28,7 @@
 
 .saves-caret {
   transition: transform 0.2s ease;
-  color: #0891b2;
+  color: #0259DD;
 }
 
 .saves-dropdown.is-open .saves-caret {
@@ -41,7 +41,7 @@
   right: 0;
   width: 280px;
   background: #fff;
-  border: 1px solid #a5f3fc;
+  border: 1px solid #bfdbfe;
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(30, 45, 80, 0.12), 0 2px 6px rgba(30, 45, 80, 0.06);
   padding: 6px;
@@ -85,14 +85,14 @@
 }
 
 .save-open:hover {
-  background: #ecfeff;
+  background: #eff6ff;
 }
 
 .save-thumb {
   width: 44px;
   height: 44px;
   border-radius: 6px;
-  background: #cffafe;
+  background: #dbeafe;
   overflow: hidden;
   flex: 0 0 44px;
   display: flex;
@@ -159,7 +159,7 @@
     padding: 4px 6px;
     font-size: 12px;
     font-weight: 600;
-    color: #0891b2;
+    color: #0259DD;
     text-transform: uppercase;
     letter-spacing: 0.04em;
   }

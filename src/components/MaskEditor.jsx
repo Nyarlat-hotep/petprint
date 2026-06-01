@@ -348,7 +348,9 @@ export default function MaskEditor({ photoUrl, bitmap, onCommit, onCancel }) {
       </div>
 
       <div className="actions">
-        <button type="button" onClick={onCancel} disabled={committing}>Cancel</button>
+        <button type="button" className="back" onClick={onCancel} disabled={committing}>
+          Cancel
+        </button>
         <button type="button" className="primary" onClick={handleDone} disabled={committing}>
           {committing ? (
             <>
