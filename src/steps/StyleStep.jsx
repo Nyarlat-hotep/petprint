@@ -178,12 +178,12 @@ function NamesPanel({ project, dispatch }) {
       <p className="names-hint">
         Tap{' '}
         <span className="nobreak">the <Star size={12} weight="fill" /> to</span>
-        {' '}make a name a hero — favorites always appear as the largest words.
+        {' '}make a name a favorite — the goodest names show up biggest.
         ({favoriteCount}/{MAX_FAVORITES})
       </p>
       <input
         type="text"
-        placeholder={atCap ? `Name limit reached (${MAX_NAMES})` : 'Add a nickname'}
+        placeholder={atCap ? `Plenty of names already!` : 'Add a nickname…'}
         value={draft}
         maxLength={MAX_NAME_LENGTH}
         disabled={atCap}
@@ -194,11 +194,11 @@ function NamesPanel({ project, dispatch }) {
       />
       {duplicate && (
         <p className="dup-msg" role="status">
-          “{duplicate}” is already on the list.
+          “{duplicate}” is already in there — you love them, we get it.
         </p>
       )}
       {names.length === 0 ? (
-        <p className="names-empty">No names yet — add one above.</p>
+        <p className="names-empty">Hungry for names — feed me some above.</p>
       ) : (
         <ul className="names-chips">
           {names.map((n, i) => {
@@ -670,7 +670,7 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
           // currentProjectId doesn't change on Update, so its own watcher
           // misses the refresh and keeps a stale row in memory.
           onSavesChanged?.()
-          setToast(wasUpdate ? 'Cloud updated' : 'Cloud saved')
+          setToast(wasUpdate ? 'Cloud refreshed! 🐾' : 'Cloud saved! 🐾')
         }}
       />
       <DonationModal

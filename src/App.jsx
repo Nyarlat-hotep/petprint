@@ -12,6 +12,7 @@ import UserMenu from './components/UserMenu'
 import SavesDropdown from './components/SavesDropdown'
 import SplashScreen from './components/SplashScreen'
 import PasswordResetModal from './components/PasswordResetModal'
+import PawCursor from './components/PawCursor'
 import './App.css'
 
 
@@ -89,7 +90,7 @@ export default function App() {
   const { user, loading: authLoading, recovering, clearRecovering } = useAuth()
 
   async function handleOpenProject(row) {
-    setOpeningStatus('Loading…')
+    setOpeningStatus('Fetching your cloud…')
     try {
       const patch = await hydrateSavedProject(row, (msg) => setOpeningStatus(msg))
       dispatch({ type: 'LOAD_PROJECT', patch })
@@ -146,6 +147,7 @@ export default function App() {
         <span aria-hidden="true">·</span>
         <a href="mailto:tcorneliusart@gmail.com">Contact</a>
       </footer>
+      <PawCursor />
       <PasswordResetModal open={recovering} onDone={clearRecovering} />
       {openingStatus && (
         <div className="opening-overlay">

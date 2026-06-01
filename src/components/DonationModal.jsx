@@ -15,7 +15,7 @@ export default function DonationModal({ open, busy, mode = 'download', onDownloa
   const isPrint = mode === 'print'
   const Icon = isPrint ? Printer : DownloadSimple
   const ctaLabel = busy
-    ? (isPrint ? 'Preparing…' : 'Rendering…')
+    ? (isPrint ? 'Warming up the printer…' : 'Painting their portrait…')
     : (isPrint ? 'Print my image' : 'Download my image')
   useEffect(() => {
     if (!open) return

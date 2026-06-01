@@ -16,16 +16,16 @@ export default function UploadStep({ project, dispatch }) {
   function handleFile(file) {
     if (!file) return
     if (isHeic(file)) {
-      setError('HEIC photos aren’t supported yet — please export your photo as JPEG or PNG first.')
+      setError('Oof, HEIC isn’t my favorite — export the photo as JPEG or PNG first.')
       return
     }
     if (!file.type.startsWith('image/')) {
-      setError('Please upload an image file.')
+      setError('Hmm, that doesn’t look like a photo.')
       return
     }
     const MAX_BYTES = 20 * 1024 * 1024 // 20 MB
     if (file.size > MAX_BYTES) {
-      setError(`That photo is ${(file.size / 1024 / 1024).toFixed(1)} MB — please use one under 20 MB.`)
+      setError(`Whoa, that photo is ${(file.size / 1024 / 1024).toFixed(1)} MB — try one under 20 MB.`)
       return
     }
     setError(null)
@@ -42,7 +42,7 @@ export default function UploadStep({ project, dispatch }) {
       dispatch({ type: 'SET_SHAPE', bitmap, shapeId: shape.id })
       dispatch({ type: 'GOTO', step: 2 })
     } catch (e) {
-      setError(`Couldn't load that shape: ${e.message}`)
+      setError(`Couldn't fetch that shape: ${e.message}`)
       setLoadingShape(null)
     }
   }
@@ -94,8 +94,8 @@ export default function UploadStep({ project, dispatch }) {
           <img src={project.photoUrl} alt="Uploaded pet" className="preview" />
         ) : (
           <div className="prompt">
-            <p><strong>Drop a photo of your pet here</strong></p>
-            <p className="muted">or click to choose a file</p>
+            <p><strong>Drop a photo of your goodest one here</strong></p>
+            <p className="muted">or click to fetch one</p>
           </div>
         )}
         <input

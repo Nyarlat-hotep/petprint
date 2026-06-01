@@ -84,16 +84,16 @@ export default function ExtractStep({ project, dispatch }) {
             <PawPrint size={28} weight="fill" />
             <PawPrint size={28} weight="fill" />
           </div>
-          <p className="loading-text">Finding your pet…</p>
+          <p className="loading-text">Sniffing for your pet…</p>
           {progress && progress.key === 'fetch' ? (
             <>
               <div className="progress-bar">
                 <div className="progress-fill" style={{ width: `${Math.min(100, (progress.current / progress.total) * 100)}%` }} />
               </div>
-              <p className="loading-sub">Downloading model ({Math.round((progress.current / progress.total) * 100)}%) — one-time wait, then cached.</p>
+              <p className="loading-sub">Fetching the magic sniffer ({Math.round((progress.current / progress.total) * 100)}%) — only once, then it lives here.</p>
             </>
           ) : (
-            <p className="loading-sub">First time? The model is downloading (~30 MB) — this is a one-time wait.</p>
+            <p className="loading-sub">First time? Just fetching the magic sniffer (~30 MB) — only happens once.</p>
           )}
         </div>
       )}
@@ -124,7 +124,7 @@ export default function ExtractStep({ project, dispatch }) {
           <span>Back</span>
         </button>
         <button className="primary" onClick={() => dispatch({ type: 'NEXT' })} disabled={status !== 'done'}>
-          Looks good
+          That's them!
         </button>
       </div>
     </div>

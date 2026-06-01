@@ -44,12 +44,14 @@ export default function WordCloudCanvas({ project, width, maxWidth, maxHeight })
     canvas.style.width = cssW + 'px'
     canvas.style.height = cssH + 'px'
 
-    if (!project.maskBitmap || deferredNames.length === 0) {
-      // Nothing to pack — just clear whatever was there.
+    if (!project.maskBitmap) {
+      // No silhouette yet — just clear whatever was there.
       const ctx = canvas.getContext('2d')
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       return
     }
+    // With a mask but no names, fall through — the renderer draws the
+    // background + silhouette tint and skips the (empty) word pass.
     const { mask } = project.maskBitmap
 
     // Render to an offscreen buffer first, then swap it in on completion —

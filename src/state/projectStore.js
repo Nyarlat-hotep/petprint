@@ -46,13 +46,14 @@ export function projectReducer(state, action) {
     case 'SET_PHOTO':
       revokeIfBlobUrl(state.photoUrl)
       revokeBitmapUrls(state.maskBitmap)
+      // Keep currentProjectId — swapping the silhouette source is an edit to
+      // the open save, not a fresh start. RESET is the only path that clears it.
       return {
         ...state,
         photoBlob: action.blob,
         photoUrl: action.url,
         maskBitmap: null,
         shapeId: null,
-        currentProjectId: null,
       }
     case 'SET_MASK':
       if (state.maskBitmap !== action.bitmap) revokeBitmapUrls(state.maskBitmap)
@@ -66,7 +67,6 @@ export function projectReducer(state, action) {
         photoUrl: null,
         maskBitmap: action.bitmap,
         shapeId: action.shapeId ?? null,
-        currentProjectId: null,
       }
     case 'LOAD_PROJECT':
       if (action.patch.photoUrl !== undefined && action.patch.photoUrl !== state.photoUrl) {
