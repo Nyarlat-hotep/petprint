@@ -235,7 +235,7 @@ function NamesPanel({ project, dispatch }) {
   )
 }
 
-export default function StyleStep({ project, dispatch }) {
+export default function StyleStep({ project, dispatch, onSavesChanged }) {
   const setStyle = (patch) => dispatch({ type: 'SET_STYLE', patch })
   const { backgroundType, backgroundValue, paletteId } = project.style
   const silhouetteMode = project.style.silhouetteMode === 'none' ? 'none' : 'tint'
@@ -659,6 +659,10 @@ export default function StyleStep({ project, dispatch }) {
           const wasUpdate = Boolean(project.currentProjectId)
           dispatch({ type: 'SET_CURRENT_PROJECT_ID', id: saved.id })
           refreshSaves()
+          // Tell App so the header's SavesDropdown re-fetches too —
+          // currentProjectId doesn't change on Update, so its own watcher
+          // misses the refresh and keeps a stale row in memory.
+          onSavesChanged?.()
           setToast(wasUpdate ? 'Cloud updated' : 'Cloud saved')
         }}
       />

@@ -103,6 +103,11 @@ export default function App() {
     if (project.currentProjectId) setSavesRefreshKey((k) => k + 1)
   }, [project.currentProjectId])
 
+  // Updating an existing save keeps the same currentProjectId, so the above
+  // effect doesn't fire — the dropdown would keep its stale row in memory.
+  // Manual bump so callers can force a refresh after Update.
+  const bumpSavesRefresh = () => setSavesRefreshKey((k) => k + 1)
+
   // While the session is being restored from storage, render nothing so we
   // don't flash the main UI before falling back to the splash. Only matters
   // for ~one frame on initial mount or after a forced reload.
@@ -130,7 +135,7 @@ export default function App() {
           <div className="step-body">
             {project.step === 0 && <UploadStep project={project} dispatch={dispatch} />}
             {project.step === 1 && <ExtractStep project={project} dispatch={dispatch} />}
-            {project.step === 2 && <StyleStep project={project} dispatch={dispatch} />}
+            {project.step === 2 && <StyleStep project={project} dispatch={dispatch} onSavesChanged={bumpSavesRefresh} />}
           </div>
         </div>
       </main>
