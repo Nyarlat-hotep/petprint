@@ -375,7 +375,7 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
                 checked={backgroundType === 'color'}
                 onChange={() => {
                   const currentPalette = PALETTES.find((p) => p.id === paletteId)
-                  setStyle({ backgroundType: 'color', backgroundValue: currentPalette?.bg || '#eef4ff' })
+                  setStyle({ backgroundType: 'color', backgroundValue: currentPalette?.bg || '#ecfeff' })
                 }}
               />
               Color

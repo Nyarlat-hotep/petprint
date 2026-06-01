@@ -103,7 +103,7 @@ export async function renderWordCloudToCanvas({
       }
       ctx.fillStyle = pattern
     } else {
-      ctx.fillStyle = '#eef4ff'
+      ctx.fillStyle = '#ecfeff'
     }
     ctx.fillRect(0, 0, w, h)
     // Apply pattern opacity by overlaying the palette's background tone — the
@@ -113,12 +113,12 @@ export async function renderWordCloudToCanvas({
     if (opacity < 1) {
       ctx.save()
       ctx.globalAlpha = 1 - opacity
-      ctx.fillStyle = palette.bg || '#eef4ff'
+      ctx.fillStyle = palette.bg || '#ecfeff'
       ctx.fillRect(0, 0, w, h)
       ctx.restore()
     }
   } else {
-    ctx.fillStyle = style.backgroundValue || '#eef4ff'
+    ctx.fillStyle = style.backgroundValue || '#ecfeff'
     ctx.fillRect(0, 0, w, h)
   }
 
@@ -131,7 +131,7 @@ export async function renderWordCloudToCanvas({
     if (opacity > 0) {
       const usingPattern = style.backgroundType === 'pattern' && style.backgroundValue
       const fillColor = usingPattern
-        ? withAlpha(palette.bg || '#eef4ff', opacity)
+        ? withAlpha(palette.bg || '#ecfeff', opacity)
         : withAlpha(palette.colors[0] || '#1a1a1a', 0.15 * opacity)
       // Feather is specified in canvas pixels at preview resolution (~580px wide).
       // Scale to the actual render width so exports get proportional smoothing.
@@ -365,7 +365,7 @@ const _patternCache = new Map()
 async function loadPattern(src, paletteColors, paletteBg) {
   const primary = withHexAlpha(paletteColors?.[0] || '#b3c5dc', 0.4)
   const secondary = withHexAlpha(paletteColors?.[1] || paletteColors?.[0] || '#cfdae8', 0.22)
-  const bg = paletteBg || '#eef4ff'
+  const bg = paletteBg || '#ecfeff'
   const cacheKey = `${src}|${primary}|${secondary}|${bg}`
   if (_patternCache.has(cacheKey)) return _patternCache.get(cacheKey)
 

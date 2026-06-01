@@ -8,7 +8,7 @@ export const initialProject = {
   names: [],
   style: {
     backgroundType: 'color',
-    backgroundValue: '#eef4ff',
+    backgroundValue: '#ecfeff',
     patternScale: 1,
     patternOpacity: 1,
     paletteId: 'mono',

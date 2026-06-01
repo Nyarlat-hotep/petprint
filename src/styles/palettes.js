@@ -1,15 +1,15 @@
 // Color picks aim for ≥3:1 contrast on each palette's bg — readable for the
 // large+medium tier words in the cloud while staying bright/pastel.
 export const PALETTES = [
-  { id: 'mono',   label: 'Mono',   colors: ['#111', '#333', '#555'],                              bg: '#f4f4f5' },
+  { id: 'mono',   label: 'Mono',   colors: ['#111', '#333', '#555', '#888'],                     bg: '#f4f4f5' },
   { id: 'warm',   label: 'Warm',   colors: ['#f43f5e', '#f97316', '#eab308', '#ec4899'],          bg: '#fff7ed' },
   { id: 'cool',   label: 'Cool',   colors: ['#06b6d4', '#3b82f6', '#10b981', '#8b5cf6'],          bg: '#f0f9ff' },
   { id: 'pastel', label: 'Pastel', colors: ['#f9a8d4', '#93c5fd', '#c4b5fd', '#fcd34d'],          bg: '#fdf4ff' },
   { id: 'earth',  label: 'Earth',  colors: ['#84a98c', '#cb997e', '#a98467', '#6b4423'],          bg: '#fefae0' },
   { id: 'air',    label: 'Air',    colors: ['#38bdf8', '#7dd3fc', '#a5b4fc', '#5eead4'],          bg: '#e0f2fe' },
-  { id: 'water',  label: 'Water',  colors: ['#1d4ed8', '#2563eb', '#0284c7', '#1e40af'],          bg: '#eff6ff' },
+  { id: 'water',  label: 'Water',  colors: ['#0e7490', '#0891b2', '#0284c7', '#155e75'],          bg: '#eff6ff' },
   { id: 'fire',   label: 'Fire',   colors: ['#dc2626', '#f97316', '#f59e0b', '#991b1b'],          bg: '#fff7ed' },
-  { id: 'custom', label: 'Custom', custom: true,                                                   bg: '#eef4ff' },
+  { id: 'custom', label: 'Custom', custom: true,                                                   bg: '#ecfeff' },
 ]
 
 export const DEFAULT_CUSTOM_COLORS = ['#ec4899', '#3b82f6', '#a855f7', '#d97706']

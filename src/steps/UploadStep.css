@@ -23,14 +23,14 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  background: #f7faff;
+  background: #ecfeff;
   transition: background 0.15s, border-color 0.15s;
   overflow: hidden;
 }
 
 .drop-zone.is-over {
-  border-color: #2563eb;
-  background: #dbe9ff;
+  border-color: #0891b2;
+  background: #cffafe;
 }
 
 .drop-zone.has-photo {
@@ -63,13 +63,13 @@
   padding: 12px 24px;
   border-radius: 8px;
   border: 0;
-  background: #2563eb;
+  background: #0891b2;
   color: #fff;
   font-weight: 600;
 }
 
 .upload-step .primary:hover {
-  background: #1d4ed8;
+  background: #0e7490;
 }
 
 .upload-step .shapes-section {
@@ -93,7 +93,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: #bfd5f5;
+  background: #a5f3fc;
 }
 
 .upload-step .shapes-grid {
@@ -109,17 +109,17 @@
   justify-content: center;
   gap: 6px;
   padding: 14px 8px;
-  background: #f7faff;
-  border: 1px solid #bfd5f5;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
   border-radius: 10px;
-  color: #2563eb;
+  color: #0891b2;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s, transform 0.1s;
 }
 
 .upload-step .shape-tile:not(:disabled):hover {
-  background: #dbe9ff;
-  border-color: #6f9adf;
+  background: #cffafe;
+  border-color: #22d3ee;
 }
 
 .upload-step .shape-tile svg {
@@ -157,7 +157,7 @@
 
 .upload-step .shape-tile.is-loading {
   opacity: 1;
-  border-color: #2563eb;
+  border-color: #0891b2;
 }
 
 .upload-step .shape-label {
@@ -167,8 +167,8 @@
 
 .upload-step .tips {
   width: 100%;
-  background: #f7faff;
-  border: 1px solid #bfd5f5;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
   border-radius: 8px;
   font-size: 14px;
   overflow: hidden;
@@ -184,7 +184,7 @@
   background: transparent;
   border: 0;
   cursor: pointer;
-  color: #2563eb;
+  color: #0891b2;
   font-weight: 600;
   font-size: 14px;
   text-align: left;
@@ -200,7 +200,7 @@
 .upload-step .tips-chevron {
   display: inline-flex;
   transition: transform 0.25s ease;
-  color: #2563eb;
+  color: #0891b2;
 }
 
 .upload-step .tips.is-open .tips-chevron {

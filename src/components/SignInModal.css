@@ -29,7 +29,7 @@
   border: 0;
   background: transparent;
   border-radius: 6px;
-  color: #2563eb;
+  color: #0891b2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -37,7 +37,7 @@
 }
 
 .signin-close:hover {
-  background: #dbe9ff;
+  background: #cffafe;
 }
 
 .signin-modal h2 {
@@ -68,14 +68,14 @@
 .signin-form input {
   padding: 10px 12px;
   font-size: 14px;
-  border: 1px solid #9bbeed;
+  border: 1px solid #67e8f9;
   border-radius: 8px;
   background: #fff;
   outline: none;
 }
 
 .signin-form input:focus {
-  border-color: #2563eb;
+  border-color: #0891b2;
 }
 
 .signin-error {
@@ -87,7 +87,7 @@
 .signin-primary {
   margin-top: 4px;
   padding: 10px;
-  background: #2563eb;
+  background: #0891b2;
   color: #fff;
   border: 0;
   border-radius: 8px;
@@ -101,7 +101,7 @@
 }
 
 .signin-primary:not(:disabled):hover {
-  background: #1d4ed8;
+  background: #0e7490;
 }
 
 .signin-divider {
@@ -117,7 +117,7 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: #bfd5f5;
+  background: #a5f3fc;
 }
 
 .signin-google {
@@ -127,7 +127,7 @@
   justify-content: center;
   gap: 8px;
   padding: 10px;
-  border: 1px solid #9bbeed;
+  border: 1px solid #67e8f9;
   background: #fff;
   border-radius: 8px;
   font-weight: 500;
@@ -136,8 +136,8 @@
 }
 
 .signin-google:not(:disabled):hover {
-  background: #f7faff;
-  border-color: #6f9adf;
+  background: #ecfeff;
+  border-color: #22d3ee;
 }
 
 .signin-google:disabled {
@@ -155,7 +155,7 @@
 .signin-toggle button {
   background: transparent;
   border: 0;
-  color: #2563eb;
+  color: #0891b2;
   font-weight: 600;
   font: inherit;
   cursor: pointer;
@@ -168,7 +168,7 @@
   align-self: flex-end;
   background: transparent;
   border: 0;
-  color: #2563eb;
+  color: #0891b2;
   font-size: 13px;
   cursor: pointer;
   padding: 0;

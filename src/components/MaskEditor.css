@@ -38,8 +38,8 @@
   align-items: center;
   gap: 16px;
   padding: 10px 12px;
-  background: #f7faff;
-  border: 1px solid #bfd5f5;
+  background: #ecfeff;
+  border: 1px solid #a5f3fc;
   border-radius: 8px;
 }
 
@@ -50,7 +50,7 @@
 
 .mask-editor .tool {
   padding: 6px 14px;
-  border: 1px solid #9bbeed;
+  border: 1px solid #67e8f9;
   background: #fff;
   border-radius: 6px;
   font-size: 14px;
@@ -58,9 +58,9 @@
 }
 
 .mask-editor .tool.active {
-  background: #2563eb;
+  background: #0891b2;
   color: #fff;
-  border-color: #2563eb;
+  border-color: #0891b2;
 }
 
 .mask-editor .brush-size {
@@ -73,7 +73,7 @@
 
 .mask-editor .brush-size input[type='range'] {
   width: 140px;
-  accent-color: #2563eb;
+  accent-color: #0891b2;
 }
 
 .mask-editor .brush-size span {
@@ -93,7 +93,7 @@
   align-items: center;
   gap: 5px;
   padding: 6px 12px;
-  border: 1px solid #9bbeed;
+  border: 1px solid #67e8f9;
   background: #fff;
   border-radius: 6px;
   font-size: 13px;
@@ -109,8 +109,8 @@
   align-items: center;
   justify-content: center;
   background:
-    repeating-conic-gradient(#dbe9ff 0% 25%, #f7faff 0% 50%) 50% / 16px 16px;
-  border: 1px solid #bfd5f5;
+    repeating-conic-gradient(#cffafe 0% 25%, #ecfeff 0% 50%) 50% / 16px 16px;
+  border: 1px solid #a5f3fc;
   border-radius: 8px;
   padding: 8px;
 }
@@ -135,16 +135,16 @@
 .mask-editor .actions button {
   padding: 10px 18px;
   border-radius: 8px;
-  border: 1px solid #9bbeed;
-  background: #eef4ff;
+  border: 1px solid #67e8f9;
+  background: #ecfeff;
 }
 
 .mask-editor .actions .primary {
-  background: #2563eb;
+  background: #0891b2;
   color: #fff;
-  border-color: #2563eb;
+  border-color: #0891b2;
 }
 
 .mask-editor .actions .primary:hover {
-  background: #1d4ed8;
+  background: #0e7490;
 }

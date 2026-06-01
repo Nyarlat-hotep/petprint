@@ -11,13 +11,13 @@
   background: transparent;
   border: 0;
   border-radius: 50%;
-  color: #2563eb;
+  color: #0891b2;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .user-icon-btn:hover {
-  background: #dbe9ff;
+  background: #cffafe;
 }
 
 .user-menu-panel {
@@ -26,7 +26,7 @@
   right: 0;
   min-width: 200px;
   background: #fff;
-  border: 1px solid #bfd5f5;
+  border: 1px solid #a5f3fc;
   border-radius: 10px;
   box-shadow: 0 8px 24px rgba(30, 45, 80, 0.12), 0 2px 6px rgba(30, 45, 80, 0.06);
   padding: 8px;
@@ -38,7 +38,7 @@
   font-size: 13px;
   color: #5a5a5a;
   word-break: break-all;
-  border-bottom: 1px solid #dbe9ff;
+  border-bottom: 1px solid #cffafe;
   margin-bottom: 4px;
 }
 
@@ -51,14 +51,14 @@
   border: 0;
   background: transparent;
   border-radius: 6px;
-  color: #2563eb;
+  color: #0891b2;
   cursor: pointer;
   font: inherit;
   text-align: left;
 }
 
 .user-menu-signout:hover {
-  background: #f7faff;
+  background: #ecfeff;
 }
 
 .user-menu-delete {

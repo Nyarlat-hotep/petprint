@@ -40,7 +40,7 @@
 
 .confirm-cancel {
   padding: 9px 16px;
-  border: 1px solid #9bbeed;
+  border: 1px solid #67e8f9;
   background: #fff;
   border-radius: 8px;
   color: #0f172a;
@@ -49,7 +49,7 @@
 }
 
 .confirm-cancel:not(:disabled):hover {
-  background: #f7faff;
+  background: #ecfeff;
 }
 
 .confirm-cancel:disabled {
@@ -59,8 +59,8 @@
 
 .confirm-primary {
   padding: 9px 18px;
-  border: 1px solid #2563eb;
-  background: #2563eb;
+  border: 1px solid #0891b2;
+  background: #0891b2;
   color: #fff;
   border-radius: 8px;
   font-weight: 600;
@@ -68,7 +68,7 @@
 }
 
 .confirm-primary:not(:disabled):hover {
-  background: #1d4ed8;
+  background: #0e7490;
 }
 
 .confirm-primary.destructive {

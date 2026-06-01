@@ -24,7 +24,7 @@
 
 .extract-step .paw-loader svg {
   position: absolute;
-  color: #2563eb;
+  color: #0891b2;
   opacity: 0;
   animation-duration: 2.4s;
   animation-timing-function: ease-in-out;
@@ -93,14 +93,14 @@
 .extract-step .progress-bar {
   width: 240px;
   height: 8px;
-  background: #cfe0ff;
+  background: #cffafe;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .extract-step .progress-fill {
   height: 100%;
-  background: #2563eb;
+  background: #0891b2;
   transition: width 0.2s ease;
 }
 
@@ -136,7 +136,7 @@
   max-height: 280px;
   object-fit: contain;
   border-radius: 8px;
-  border: 1px solid #bfd5f5;
+  border: 1px solid #a5f3fc;
 }
 
 .extract-step .thumb.checker {
@@ -154,17 +154,17 @@
   justify-content: center;
   gap: 6px;
   padding: 12px;
-  border: 1px solid #9bbeed;
+  border: 1px solid #67e8f9;
   background: #fff;
-  color: #2563eb;
+  color: #0891b2;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
 }
 
 .extract-step .refine-link:not(:disabled):hover {
-  background: #f7faff;
-  border-color: #6f9adf;
+  background: #ecfeff;
+  border-color: #22d3ee;
 }
 
 .extract-step .refine-link:disabled {
@@ -176,8 +176,8 @@
   align-self: stretch;
   margin: auto -32px -32px;
   padding: 16px 32px;
-  border-top: 1px solid #bfd5f5;
-  background: #f7faff;
+  border-top: 1px solid #a5f3fc;
+  background: #ecfeff;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -192,21 +192,21 @@
   padding: 10px 12px;
   border: 0;
   background: transparent;
-  color: #2563eb;
+  color: #0891b2;
   border-radius: 8px;
   font-weight: 500;
   cursor: pointer;
 }
 
 .extract-step .step-footer .back:hover {
-  background: #dbe9ff;
+  background: #cffafe;
 }
 
 .extract-step .step-footer .primary {
   padding: 10px 24px;
   border-radius: 8px;
-  border: 1px solid #2563eb;
-  background: #2563eb;
+  border: 1px solid #0891b2;
+  background: #0891b2;
   color: #fff;
   font-weight: 600;
 }
@@ -217,7 +217,7 @@
 }
 
 .extract-step .step-footer .primary:not(:disabled):hover {
-  background: #1d4ed8;
+  background: #0e7490;
 }
 
 @media (max-width: 720px) {

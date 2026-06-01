@@ -7,7 +7,7 @@ import './ColorSwatchPicker.css'
  * Color swatch + react-colorful popover.
  *
  * Props:
- *   color — current hex (e.g. "#eef4ff")
+ *   color — current hex (e.g. "#ecfeff")
  *   onChange — called with new hex on every drag
  *   size — swatch px (defaults to 28)
  *   ariaLabel — accessible label for the trigger
