@@ -200,36 +200,40 @@ function packWords(words, mask, maskW, maskH, ctx, seed, fillOpts = {}) {
   // candidate position is adjacent to where the previous one tried, so once
   // the silhouette starts filling up, candidates concentrate next to already-
   // placed words — finding the tight gaps random sampling would miss.
-  function tryPlace(word, maxAttempts) {
+  function tryPlace(word, maxAttempts, padOverride, opts = {}) {
+    const pad = padOverride ?? padding
+    const skipMask = opts.skipMask === true
     const isRotated = word.rotation === 90
     const boxW = isRotated ? word.mh : word.mw
     const boxH = isRotated ? word.mw : word.mh
     const halfW = boxW / 2
     const halfH = boxH / 2
 
-    // Word is wider than the silhouette — no point sampling positions.
-    if (boxW > maskW - padding * 2 || boxH > maskH - padding * 2) return null
+    // Word is wider than the canvas — no point sampling positions.
+    if (boxW > maskW - pad * 2 || boxH > maskH - pad * 2) return null
 
     // Check a single candidate centre against mask + overlap. Returns hit or null.
     const checkAt = (cx, cy) => {
       const x0 = cx - halfW, y0 = cy - halfH
       const x1 = cx + halfW, y1 = cy + halfH
-      if (x0 < padding || y0 < padding || x1 > maskW - padding || y1 > maskH - padding) return null
+      if (x0 < pad || y0 < pad || x1 > maskW - pad || y1 > maskH - pad) return null
 
-      // Sample bounding box for silhouette containment. Sample density scales
-      // with box size (~one sample every 5px) so wide words can't straddle gaps
-      // in multi-region shapes (e.g. between paw pads).
-      const Nx = Math.max(5, Math.ceil(boxW / 5))
-      const Ny = Math.max(5, Math.ceil(boxH / 5))
-      for (let i = 0; i <= Nx; i++) {
-        for (let j = 0; j <= Ny; j++) {
-          const sx = Math.floor(x0 + (i / Nx) * boxW)
-          const sy = Math.floor(y0 + (j / Ny) * boxH)
-          if (sx < 0 || sx >= maskW || sy < 0 || sy >= maskH || !mask[sy * maskW + sx]) return null
+      // Silhouette containment — only enforced when skipMask is false.
+      // Sample density scales with box size (~one sample every 5px) so wide
+      // words can't straddle gaps in multi-region shapes (e.g. between paw pads).
+      if (!skipMask) {
+        const Nx = Math.max(5, Math.ceil(boxW / 5))
+        const Ny = Math.max(5, Math.ceil(boxH / 5))
+        for (let i = 0; i <= Nx; i++) {
+          for (let j = 0; j <= Ny; j++) {
+            const sx = Math.floor(x0 + (i / Nx) * boxW)
+            const sy = Math.floor(y0 + (j / Ny) * boxH)
+            if (sx < 0 || sx >= maskW || sy < 0 || sy >= maskH || !mask[sy * maskW + sx]) return null
+          }
         }
       }
       for (const p of placed) {
-        if (!(x1 + padding <= p.x0 || x0 >= p.x1 + padding || y1 + padding <= p.y0 || y0 >= p.y1 + padding)) {
+        if (!(x1 + pad <= p.x0 || x0 >= p.x1 + pad || y1 + pad <= p.y0 || y0 >= p.y1 + pad)) {
           return null
         }
       }
@@ -316,11 +320,87 @@ function packWords(words, mask, maskW, maskH, ctx, seed, fillOpts = {}) {
     }
   }
 
-  // ── Gap-fill sweep ─────────────────────────────────────────────────────
-  // After the main placement, keep stuffing small extras into whatever empty
-  // space remains. Stop after N consecutive failures — that means we've
-  // saturated and any new word at this min size won't fit.
   const minFontPx = fillOpts.minFontPx
+
+  // ── Guarantee pass ─────────────────────────────────────────────────────
+  // Every user-typed name MUST appear at least once, and always inside the
+  // silhouette. Cascade:
+  //   1. Shrink floor → 30% of floor, both rotations, normal padding
+  //   2. Same shrink range, both rotations, zero padding (touching allowed)
+  //   3. Eviction: if still no fit, displace a small fill-pass copy whose
+  //      text is already represented elsewhere — frees space without losing
+  //      any unique name — then retry.
+  if (minFontPx) {
+    const placedTexts = new Map() // text -> count
+    for (const r of result) placedTexts.set(r.text, (placedTexts.get(r.text) || 0) + 1)
+    const tried = new Set()
+    const shrinkSteps = [1.0, 0.85, 0.7, 0.55, 0.4, 0.3]
+
+    const commit = (word, hit) => {
+      placed.push({ x0: hit.x0, y0: hit.y0, x1: hit.x1, y1: hit.y1 })
+      result.push({ ...word, cx: hit.cx, cy: hit.cy })
+      placedTexts.set(word.text, (placedTexts.get(word.text) || 0) + 1)
+    }
+
+    // Try every size × rotation × padding combo for a single guaranteed word.
+    // Returns the successful placement or null.
+    const exhaustivelyPlace = (sourceWord) => {
+      for (const pad of [padding, 0]) {
+        for (const scale of shrinkSteps) {
+          for (const rot of [0, 90]) {
+            const g = { ...sourceWord, fontSize: minFontPx * scale, rotation: rot, favorite: false }
+            remeasure(g)
+            const hit = tryPlace(g, 800, pad === padding ? undefined : 0)
+            if (hit) return { word: g, hit }
+          }
+        }
+      }
+      return null
+    }
+
+    // Free up space by removing the smallest fill-pass copy whose text appears
+    // multiple times. Returns true if eviction happened.
+    const evictSurplus = () => {
+      let victimIdx = -1
+      let victimSize = Infinity
+      for (let i = 0; i < result.length; i++) {
+        const r = result[i]
+        // Must not be the last copy of its text.
+        if ((placedTexts.get(r.text) || 0) <= 1) continue
+        // Don't evict favorites.
+        if (r.favorite) continue
+        if (r.fontSize < victimSize) {
+          victimSize = r.fontSize
+          victimIdx = i
+        }
+      }
+      if (victimIdx < 0) return false
+      const victim = result[victimIdx]
+      placedTexts.set(victim.text, placedTexts.get(victim.text) - 1)
+      result.splice(victimIdx, 1)
+      placed.splice(victimIdx, 1)
+      return true
+    }
+
+    for (const word of words) {
+      if (placedTexts.has(word.text) || tried.has(word.text)) continue
+      tried.add(word.text)
+
+      let attempt = exhaustivelyPlace(word)
+      // Evict surplus duplicates and retry up to a safety cap.
+      let evictionsLeft = 40
+      while (!attempt && evictionsLeft > 0 && evictSurplus()) {
+        evictionsLeft--
+        attempt = exhaustivelyPlace(word)
+      }
+      if (attempt) commit(attempt.word, attempt.hit)
+    }
+  }
+
+  // ── Gap-fill sweep ─────────────────────────────────────────────────────
+  // After the main + guarantee passes, keep stuffing small extras into
+  // whatever empty space remains. Stop after N consecutive failures — that
+  // means we've saturated and any new word at this min size won't fit.
   if (minFontPx && result.length > 0) {
     // Random size between min and ~2× min, so the fill doesn't look uniform.
     const sizeFloor = minFontPx
