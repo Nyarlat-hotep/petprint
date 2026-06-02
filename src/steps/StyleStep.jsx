@@ -71,6 +71,66 @@ function SizeDropdown({ value, onChange, options, disabled, formatLabel }) {
   )
 }
 
+function PatternDropdown({ value, onChange, options }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    if (!open) return
+    function onDocMouseDown(e) {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('mousedown', onDocMouseDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDocMouseDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
+
+  const selected = options.find((p) => p.url === value) || options[0]
+
+  return (
+    <div className={`size-dropdown ${open ? 'is-open' : ''}`} ref={ref}>
+      <button
+        type="button"
+        className="size-trigger"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span className="pattern-option-label">
+          <img src={selected.url} alt="" className="pattern-swatch" />
+          {selected.label}
+        </span>
+        <CaretDown size={14} weight="bold" className="size-caret" />
+      </button>
+      <ul className="size-menu pattern-menu" role="listbox">
+        {options.map((p) => (
+          <li key={p.id}>
+            <button
+              type="button"
+              role="option"
+              aria-selected={p.url === value}
+              className={`size-option ${p.url === value ? 'is-selected' : ''}`}
+              onClick={() => { onChange(p.url); setOpen(false) }}
+            >
+              <span className="pattern-option-label">
+                <img src={p.url} alt="" className="pattern-swatch" />
+                {p.label}
+              </span>
+              {p.url === value && <Check size={14} weight="bold" />}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function AlignIcon({ axis, pos }) {
   // 18×18 viewbox: outer rounded square, inner filled rect positioned per axis+pos
   const inner = (() => {
@@ -313,6 +373,27 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
     setTimeout(() => setNamesDrawerMounted(false), 320)
   }
   const canvasWrapRef = useRef(null)
+  const controlsRef = useRef(null)
+  // Two heights, both measured off the options column:
+  //  • colorOptionsHeight — captured only in color mode. Drives the PREVIEW box,
+  //    so the canvas keeps a stable height and never moves/flashes when the
+  //    options column grows in pattern mode.
+  //  • liveOptionsHeight — the current height in either mode. Drives the NAMES
+  //    box so it fills down and stays bottom-aligned with the options column.
+  const [colorOptionsHeight, setColorOptionsHeight] = useState(null)
+  const [liveOptionsHeight, setLiveOptionsHeight] = useState(null)
+
+  useEffect(() => {
+    const el = controlsRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => {
+      const h = el.offsetHeight
+      setLiveOptionsHeight(h)
+      if (backgroundType === 'color') setColorOptionsHeight(h)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [backgroundType])
 
   // Canvas aspect (w/h) follows the chosen print size + orientation; the
   // silhouette is fit inside and the leftover area becomes background.
@@ -330,6 +411,8 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
 
   useEffect(() => {
     const el = canvasWrapRef.current
+    // The preview box height is stable across modes (colorOptionsHeight), so the
+    // wrap doesn't change when toggling pattern — the canvas size stays put.
     if (!el) return
     const ro = new ResizeObserver(([entry]) => {
       const w = Math.floor(entry.contentRect.width)
@@ -426,8 +509,14 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
 
   return (
     <div className="style-step">
-      <div className="style-grid">
-        <aside className="controls">
+      <div
+        className="style-grid"
+        style={{
+          ...(colorOptionsHeight ? { '--preview-h': `${colorOptionsHeight}px` } : {}),
+          ...(liveOptionsHeight ? { '--names-h': `${liveOptionsHeight}px` } : {}),
+        }}
+      >
+        <aside className="controls" ref={controlsRef}>
         <fieldset>
           <legend>Background</legend>
           <div className="bg-type">
@@ -466,19 +555,11 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
 
           {backgroundType === 'pattern' && (
             <>
-              <div className="pattern-grid">
-                {PATTERNS.map((p) => (
-                  <button
-                    key={p.id}
-                    className={`pattern-tile ${backgroundValue === p.url ? 'selected' : ''}`}
-                    onClick={() => setStyle({ backgroundValue: p.url })}
-                    title={p.label}
-                    type="button"
-                  >
-                    <img src={p.url} alt={p.label} />
-                  </button>
-                ))}
-              </div>
+              <PatternDropdown
+                value={backgroundValue}
+                onChange={(url) => setStyle({ backgroundValue: url })}
+                options={PATTERNS}
+              />
               <label className="pattern-scale">
                 <span className="pattern-scale-label">
                   <span>Pattern scale</span>

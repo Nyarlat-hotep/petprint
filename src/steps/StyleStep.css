@@ -10,7 +10,12 @@
   display: grid;
   grid-template-columns: 260px 1fr 240px;
   gap: 24px;
-  align-items: stretch;
+  /* Each column sizes to its own content. The options column can grow (e.g.
+     switching to Pattern) without stretching the preview/names columns — the
+     page gets taller on the left only, instead of every element resizing. */
+  align-items: start;
+  --preview-h: 600px;
+  --names-h: 600px;
 }
 
 /* Right-side names panel (desktop). On mobile it's hidden — the drawer is used instead. */
@@ -19,7 +24,7 @@
    panel fills whatever that ends up being. */
 .style-step .names-aside {
   position: relative;
-  min-height: 0;
+  height: var(--names-h);
 }
 
 .style-step .names-panel {
@@ -251,7 +256,7 @@
 .style-step .controls {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
 .style-step fieldset {
@@ -308,31 +313,26 @@
   font-weight: 600;
 }
 
-.style-step .pattern-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 6px;
+.style-step .pattern-option-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
-.style-step .pattern-tile {
-  aspect-ratio: 1;
-  border: 1px solid #93c5fd;
+.style-step .pattern-swatch {
+  width: 22px;
+  height: 22px;
   border-radius: 4px;
-  padding: 0;
-  overflow: hidden;
+  border: 1px solid #93c5fd;
   background: #eff6ff;
-  cursor: pointer;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
-.style-step .pattern-tile.selected {
-  border-color: #0259DD;
-  border-width: 2px;
-}
-
-.style-step .pattern-tile img {
-  width: 100%;
-  height: 100%;
-  display: block;
+.style-step .pattern-menu {
+  max-height: 240px;
+  overflow-y: auto;
 }
 
 .style-step .pattern-scale {
@@ -672,7 +672,8 @@
   /* background: #eff6ff; */
   border-radius: 12px;
   padding: 16px;
-  min-height: 400px;
+  /* Fixed height so the canvas stays put when the options column grows. */
+  height: var(--preview-h);
   border: 1px solid #bfdbfe
 }
 
@@ -803,6 +804,7 @@
   /* Show the preview above the controls on mobile so users see what they're styling. */
   .style-step .preview {
     order: -1;
+    height: auto;
     min-height: 0;
     padding: 10px;
   }
@@ -830,9 +832,6 @@
   }
   .style-step fieldset {
     padding: 10px;
-  }
-  .style-step .pattern-grid {
-    grid-template-columns: repeat(5, 1fr);
   }
   .style-step .align-bar {
     gap: 8px;

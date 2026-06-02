@@ -129,10 +129,10 @@ export async function renderWordCloudToCanvas({
   if ((style.silhouetteMode || 'tint') === 'tint') {
     const opacity = Math.max(0, Math.min(1, style.silhouetteOpacity ?? 1))
     if (opacity > 0) {
-      const usingPattern = style.backgroundType === 'pattern' && style.backgroundValue
-      const fillColor = usingPattern
-        ? withAlpha(palette.bg || '#eff6ff', opacity)
-        : withAlpha(palette.colors[0] || '#1a1a1a', 0.15 * opacity)
+      // Silhouette tint is identical regardless of background, so toggling a
+      // pattern on/off only swaps the background fill — the silhouette and
+      // words look unchanged.
+      const fillColor = withAlpha(palette.colors[0] || '#1a1a1a', 0.15 * opacity)
       // Feather is specified in canvas pixels at preview resolution (~580px wide).
       // Scale to the actual render width so exports get proportional smoothing.
       const featherCss = Math.max(0, Math.min(4, style.silhouetteFeather ?? 0))
