@@ -13,7 +13,7 @@ import DonationModal from '../components/DonationModal'
 import { PALETTES } from '../styles/palettes'
 import { PATTERNS } from '../styles/patterns'
 import WordCloudCanvas from '../components/WordCloudCanvas'
-import { exportPng, listExportSizes, computeInches, formatInches, ASPECT_RATIOS } from '../lib/export'
+import { exportPng, listExportSizes, computeInches, formatInches } from '../lib/export'
 import './StyleStep.css'
 
 const EXPORT_SIZES = listExportSizes()
@@ -48,21 +48,21 @@ function SizeDropdown({ value, onChange, options, disabled, formatLabel }) {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span>{formatLabel(value)} in @ 300 DPI</span>
+        <span>{formatLabel(options.find((s) => s.id === value))} in @ 300 DPI</span>
         <CaretDown size={14} weight="bold" className="size-caret" />
       </button>
       <ul className="size-menu" role="listbox">
         {options.map((s) => (
-          <li key={s}>
+          <li key={s.id}>
             <button
               type="button"
               role="option"
-              aria-selected={s === value}
-              className={`size-option ${s === value ? 'is-selected' : ''}`}
-              onClick={() => { onChange(s); setOpen(false) }}
+              aria-selected={s.id === value}
+              className={`size-option ${s.id === value ? 'is-selected' : ''}`}
+              onClick={() => { onChange(s.id); setOpen(false) }}
             >
               <span>{formatLabel(s)} in @ 300 DPI</span>
-              {s === value && <Check size={14} weight="bold" />}
+              {s.id === value && <Check size={14} weight="bold" />}
             </button>
           </li>
         ))}
@@ -117,16 +117,8 @@ function ShapeIcon({ w, h }) {
 
 function AlignmentBar({ style, setStyle, onRegenerate }) {
   const { alignH, alignV } = style
-  const aspectRatio = style.aspectRatio || '4:5'
-  const orientation = style.orientation || 'portrait'
-  const isSquare = aspectRatio === '1:1'
-  const portrait = orientation === 'portrait'
-  // Ratio swatches always preview in the current orientation so the icon
-  // matches what the canvas will become.
-  const ratioDims = (ar) => {
-    if (ar.id === '1:1') return { w: 1, h: 1 }
-    return portrait ? { w: ar.short, h: ar.long } : { w: ar.long, h: ar.short }
-  }
+  const portrait = (style.orientation || 'portrait') === 'portrait'
+  const isSquare = !!EXPORT_SIZES.find((s) => s.id === style.printSize)?.square
   const hOpts = [
     { id: 'left',   label: 'Align left' },
     { id: 'center', label: 'Align horizontal center' },
@@ -147,7 +139,7 @@ function AlignmentBar({ style, setStyle, onRegenerate }) {
             type="button"
             className={alignH === o.id ? 'align-btn active' : 'align-btn'}
             onClick={() => setStyle({ alignH: o.id })}
-            title={o.label}
+            data-tip={o.label}
             aria-label={o.label}
             aria-pressed={alignH === o.id}
           >
@@ -163,7 +155,7 @@ function AlignmentBar({ style, setStyle, onRegenerate }) {
             type="button"
             className={alignV === o.id ? 'align-btn active' : 'align-btn'}
             onClick={() => setStyle({ alignV: o.id })}
-            title={o.label}
+            data-tip={o.label}
             aria-label={o.label}
             aria-pressed={alignV === o.id}
           >
@@ -171,32 +163,13 @@ function AlignmentBar({ style, setStyle, onRegenerate }) {
           </button>
         ))}
       </div>
-      <div className="align-group" role="radiogroup" aria-label="Aspect ratio">
-        <span className="align-label">Ratio</span>
-        {ASPECT_RATIOS.map((ar) => {
-          const d = ratioDims(ar)
-          return (
-            <button
-              key={ar.id}
-              type="button"
-              className={aspectRatio === ar.id ? 'align-btn active' : 'align-btn'}
-              onClick={() => setStyle({ aspectRatio: ar.id })}
-              title={`${ar.id} ratio`}
-              aria-label={`${ar.id} aspect ratio`}
-              aria-pressed={aspectRatio === ar.id}
-            >
-              <ShapeIcon w={d.w} h={d.h} />
-            </button>
-          )
-        })}
-      </div>
       <div className="align-group" role="radiogroup" aria-label="Orientation">
         <span className="align-label">Rotate</span>
         <button
           type="button"
           className={portrait && !isSquare ? 'align-btn active' : 'align-btn'}
           onClick={() => setStyle({ orientation: 'portrait' })}
-          title="Portrait"
+          data-tip="Portrait"
           aria-label="Portrait orientation"
           aria-pressed={portrait}
           disabled={isSquare}
@@ -207,7 +180,7 @@ function AlignmentBar({ style, setStyle, onRegenerate }) {
           type="button"
           className={!portrait && !isSquare ? 'align-btn active' : 'align-btn'}
           onClick={() => setStyle({ orientation: 'landscape' })}
-          title="Landscape"
+          data-tip="Landscape"
           aria-label="Landscape orientation"
           aria-pressed={!portrait}
           disabled={isSquare}
@@ -219,7 +192,7 @@ function AlignmentBar({ style, setStyle, onRegenerate }) {
         type="button"
         className="regen-btn"
         onClick={onRegenerate}
-        title="Regenerate cloud"
+        data-tip="Regenerate cloud"
         aria-label="Regenerate cloud"
       >
         <ArrowsClockwise size={18} weight="bold" />
@@ -317,7 +290,6 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
   const { backgroundType, backgroundValue, paletteId } = project.style
   const silhouetteMode = project.style.silhouetteMode === 'none' ? 'none' : 'tint'
 
-  const [size, setSize] = useState(10)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [signInOpen, setSignInOpen] = useState(false)
@@ -342,12 +314,12 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
   }
   const canvasWrapRef = useRef(null)
 
-  // Canvas aspect (w/h) follows the chosen ratio + orientation; the silhouette
-  // is fit inside and the leftover area becomes background.
+  // Canvas aspect (w/h) follows the chosen print size + orientation; the
+  // silhouette is fit inside and the leftover area becomes background.
   const aspect = useMemo(() => {
-    const { wIn, hIn } = computeInches(project.style, 10)
+    const { wIn, hIn } = computeInches(project.style)
     return wIn / hIn
-  }, [project.style.aspectRatio, project.style.orientation])
+  }, [project.style.printSize, project.style.orientation])
 
   // Letterbox the canvas to that aspect within the available wrap bounds.
   const fitted = useMemo(() => {
@@ -379,18 +351,18 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
     setBusy(true)
     setError(null)
     try {
-      const blob = await exportPng(project, size)
+      const blob = await exportPng(project)
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `pet-cloud-${formatInches(project.style, size).replace(/\s|×/g, '')}in.png`
+      a.download = `pet-cloud-${formatInches(project.style).replace(/\s|×/g, '')}in.png`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
       setTimeout(() => URL.revokeObjectURL(url), 1000)
       setDonationOpen(false)
     } catch (e) {
-      setError(`Could not render at ${formatInches(project.style, size)} in. Try a smaller size. (${e.message})`)
+      setError(`Could not render at ${formatInches(project.style)} in. Try a smaller size. (${e.message})`)
     } finally {
       setBusy(false)
     }
@@ -400,7 +372,7 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
     setBusy(true)
     setError(null)
     try {
-      const blob = await exportPng(project, size)
+      const blob = await exportPng(project)
       const url = URL.createObjectURL(blob)
 
       // Hidden iframe approach — no pop-up blockers, prints in-page.
@@ -446,7 +418,7 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
 
       setDonationOpen(false)
     } catch (e) {
-      setError(`Could not prepare for printing at ${formatInches(project.style, size)} in. (${e.message})`)
+      setError(`Could not prepare for printing at ${formatInches(project.style)} in. (${e.message})`)
     } finally {
       setBusy(false)
     }
@@ -638,11 +610,16 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
         <fieldset className="download-fieldset">
           <legend>Print size</legend>
           <SizeDropdown
-            value={size}
-            onChange={setSize}
+            value={project.style.printSize || '8x10'}
+            onChange={(id) => setStyle({ printSize: id })}
             options={EXPORT_SIZES}
             disabled={busy}
-            formatLabel={(s) => formatInches(project.style, s)}
+            formatLabel={(s) => {
+              if (!s) return ''
+              if (s.square) return `${s.wIn} × ${s.hIn} (square)`
+              const portrait = (project.style.orientation || 'portrait') === 'portrait'
+              return portrait ? `${s.wIn} × ${s.hIn}` : `${s.hIn} × ${s.wIn}`
+            }}
           />
           {error && <p className="download-error">{error}</p>}
         </fieldset>

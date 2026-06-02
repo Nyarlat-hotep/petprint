@@ -1,47 +1,44 @@
 import { renderWordCloudToCanvas } from './renderWordCloud'
 import { resolvePalette } from '../styles/palettes'
 
-// Aspect ratios the user can pick on the preview stage, expressed as
-// short:long so we can derive the short edge from a chosen long edge.
-export const ASPECT_RATIOS = [
-  { id: '1:1', short: 1, long: 1 },
-  { id: '4:5', short: 4, long: 5 },
-  { id: '5:7', short: 5, long: 7 },
-  { id: '2:3', short: 2, long: 3 },
+// The single list of print sizes the user picks from. Stored in portrait form
+// (wIn ≤ hIn); the orientation toggle flips non-square sizes to landscape.
+// Each size's proportions also drive the live preview shape.
+export const PRINT_SIZES = [
+  { id: '5x7',   wIn: 5,  hIn: 7  },
+  { id: '8x8',   wIn: 8,  hIn: 8,  square: true },
+  { id: '8x10',  wIn: 8,  hIn: 10 },
+  { id: '11x14', wIn: 11, hIn: 14 },
+  { id: '11x17', wIn: 11, hIn: 17 },
+  { id: '12x12', wIn: 12, hIn: 12, square: true },
+  { id: '16x20', wIn: 16, hIn: 20 },
+  { id: '24x36', wIn: 24, hIn: 36 },
 ]
-// Print sizes are chosen by their long edge in inches; the short edge follows
-// from the selected aspect ratio. (4:5 @ 10in long = the classic 8×10.)
-const LONG_EDGES = [7, 10, 14, 20]
+const DEFAULT_SIZE = '8x10'
 const DPI = 300
 
-function ratioFor(style) {
-  return ASPECT_RATIOS.find((a) => a.id === style?.aspectRatio) || ASPECT_RATIOS[1]
+function sizeFor(style) {
+  return PRINT_SIZES.find((s) => s.id === style?.printSize)
+    || PRINT_SIZES.find((s) => s.id === DEFAULT_SIZE)
 }
 
-// Resolve the printed dimensions (in inches) for a style + chosen long edge.
-// Orientation decides which axis gets the long edge; '1:1' ignores it.
-export function computeInches(style, longEdgeIn) {
-  const ar = ratioFor(style)
-  const longIn = longEdgeIn
-  const shortIn = (longEdgeIn * ar.short) / ar.long
+// Resolve printed dimensions (inches) for a style. Orientation flips the
+// stored portrait size to landscape; square sizes ignore orientation.
+export function computeInches(style) {
+  const s = sizeFor(style)
   const portrait = (style?.orientation || 'portrait') === 'portrait'
-  return portrait ? { wIn: shortIn, hIn: longIn } : { wIn: longIn, hIn: shortIn }
+  return (portrait || s.square) ? { wIn: s.wIn, hIn: s.hIn } : { wIn: s.hIn, hIn: s.wIn }
 }
 
-// Trim to a clean label, e.g. 8 × 10 or 7.1 × 10.
-function fmtIn(n) {
-  return Number(n.toFixed(1)).toString()
-}
-export function formatInches(style, longEdgeIn) {
-  const { wIn, hIn } = computeInches(style, longEdgeIn)
-  return `${fmtIn(wIn)} × ${fmtIn(hIn)}`
+export function formatInches(style) {
+  const { wIn, hIn } = computeInches(style)
+  return `${wIn} × ${hIn}`
 }
 
-export async function exportPng(project, longEdgeIn) {
+export async function exportPng(project) {
   if (!project.maskBitmap) throw new Error('No silhouette to render.')
-  if (!LONG_EDGES.includes(longEdgeIn)) throw new Error(`Unknown size: ${longEdgeIn}`)
 
-  const { wIn, hIn } = computeInches(project.style, longEdgeIn)
+  const { wIn, hIn } = computeInches(project.style)
   let w = Math.round(wIn * DPI)
   let h = Math.round(hIn * DPI)
 
@@ -53,7 +50,7 @@ export async function exportPng(project, longEdgeIn) {
   const deviceMemoryGB = navigator.deviceMemory ?? 8
   const maxPixels = deviceMemoryGB < 4
     ? 18_000_000  // ~4242 × 4242 — caps an 11×14 at 300 DPI on low-mem devices
-    : 60_000_000  // ~7745 × 7745 — well under a 16×20 ceiling on desktop
+    : 80_000_000  // ~8944 × 8944 — fits a full 24×36 poster (7200 × 10800) on desktop
   if (w * h > maxPixels) {
     const scale = Math.sqrt(maxPixels / (w * h))
     w = Math.round(w * scale)
@@ -93,5 +90,5 @@ export async function exportPng(project, longEdgeIn) {
 }
 
 export function listExportSizes() {
-  return [...LONG_EDGES]
+  return PRINT_SIZES
 }

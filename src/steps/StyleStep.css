@@ -94,7 +94,7 @@
 .style-step .names-chips {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 0 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -721,6 +721,37 @@
   border-radius: 4px;
   color: #0259DD;
   padding: 0;
+  position: relative;
+}
+
+/* Lightweight CSS tooltip — native title is unreliable behind the paw cursor. */
+.style-step [data-tip] {
+  position: relative;
+}
+
+.style-step [data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: #0f172a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 5px 8px;
+  border-radius: 6px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+  z-index: 50;
+}
+
+.style-step [data-tip]:hover:not(:disabled)::after,
+.style-step [data-tip]:focus-visible::after {
+  opacity: 1;
 }
 
 .style-step .align-btn:hover {

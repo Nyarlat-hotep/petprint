@@ -15,8 +15,8 @@ export const initialProject = {
     customPaletteColors: ['#a8442a', '#d97742', '#e6c08a', '#5a3a2b'],
     alignH: 'center',     // 'left' | 'center' | 'right'
     alignV: 'middle',     // 'top'  | 'middle' | 'bottom'
-    aspectRatio: '4:5',   // '1:1' | '4:5' | '5:7' | '2:3' — print/canvas proportions
-    orientation: 'portrait', // 'portrait' | 'landscape' (ignored when aspectRatio is '1:1')
+    printSize: '8x10',    // id from PRINT_SIZES — sets both print dimensions and preview shape
+    orientation: 'portrait', // 'portrait' | 'landscape' (ignored for square sizes)
     silhouetteMode: 'tint',     // 'tint' | 'none'
     silhouetteOpacity: 0.5,     // 0..1 multiplier on the tint fill alpha
     silhouetteFeather: 0,       // 0..4 px blur applied to silhouette stencil edges
