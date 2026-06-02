@@ -69,6 +69,7 @@ export default function UserMenu() {
             onClick={async () => {
               setOpen(false)
               clearDraft()
+              try { localStorage.removeItem('petprint-guest') } catch { /* ignore */ }
               await signOut()
               window.location.reload()
             }}

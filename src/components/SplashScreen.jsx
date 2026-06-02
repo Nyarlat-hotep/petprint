@@ -5,7 +5,7 @@ import SplashBackground from './SplashBackground'
 import ForgotPasswordModal from './ForgotPasswordModal'
 import './SplashScreen.css'
 
-export default function SplashScreen() {
+export default function SplashScreen({ onGuest }) {
   const { signUp, signInWithPassword, signInWithGoogle } = useAuth()
   const [mode, setMode] = useState('signin')
   const [email, setEmail] = useState('')
@@ -102,6 +102,12 @@ export default function SplashScreen() {
             <>Already have one? <button type="button" onClick={() => setMode('signin')}>Sign in</button></>
           )}
         </p>
+
+        {onGuest && (
+          <button type="button" className="splash-guest" onClick={onGuest} disabled={busy}>
+            Continue without an account
+          </button>
+        )}
         <p className="splash-legal">
           By signing in you agree to our{' '}
           <a href={`${import.meta.env.BASE_URL}legal/terms.html`} target="_blank" rel="noopener noreferrer">Terms</a>{' '}

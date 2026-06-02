@@ -43,6 +43,9 @@
 .signin-modal h2 {
   margin: 0 0 4px;
   font-size: 20px;
+  /* Pin the color so it doesn't inherit from the mount context (header vs the
+     style step), keeping the headline identical wherever the modal opens. */
+  color: #0f172a;
 }
 
 .signin-sub {

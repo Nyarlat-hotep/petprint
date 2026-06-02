@@ -83,6 +83,15 @@ export default function App() {
   })
   const [openingStatus, setOpeningStatus] = useState(null)
   const [savesRefreshKey, setSavesRefreshKey] = useState(0)
+  // Guests can use the whole app without an account; sign-in is only prompted
+  // when they try to save to the cloud. Persisted so a refresh keeps them in.
+  const [guest, setGuest] = useState(() => {
+    try { return localStorage.getItem('petprint-guest') === '1' } catch { return false }
+  })
+  const enterGuest = () => {
+    try { localStorage.setItem('petprint-guest', '1') } catch { /* ignore */ }
+    setGuest(true)
+  }
 
   useEffect(() => {
     if (!isSupabaseConfigured) saveDraft(project)
@@ -116,8 +125,8 @@ export default function App() {
   if (isSupabaseConfigured && authLoading) {
     return <div className="app-loading" />
   }
-  if (isSupabaseConfigured && !user) {
-    return <SplashScreen />
+  if (isSupabaseConfigured && !user && !guest) {
+    return <SplashScreen onGuest={enterGuest} />
   }
 
   return (

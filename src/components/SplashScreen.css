@@ -194,6 +194,33 @@
   cursor: not-allowed;
 }
 
+.splash-guest {
+  display: block;
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 11px 14px;
+  background: transparent;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  color: #475569;
+  font: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.splash-guest:not(:disabled):hover {
+  border-color: #0259DD;
+  color: #0259DD;
+  background: #f5f9ff;
+}
+
+.splash-guest:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .splash-legal {
   margin: 14px 0 0;
   font-size: 11px;
