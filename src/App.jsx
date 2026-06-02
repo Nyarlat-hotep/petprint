@@ -5,6 +5,7 @@ import { loadDraft, saveDraft } from './storage'
 import { useAuth } from './state/useAuth'
 import { isSupabaseConfigured } from './lib/supabase'
 import { hydrateSavedProject } from './lib/openProject'
+import { resolvePalette } from './styles/palettes'
 import UploadStep from './steps/UploadStep'
 import ExtractStep from './steps/ExtractStep'
 import StyleStep from './steps/StyleStep'
@@ -147,7 +148,7 @@ export default function App() {
         <span aria-hidden="true">·</span>
         <a href="mailto:tcorneliusart@gmail.com">Contact</a>
       </footer>
-      <PawCursor />
+      <PawCursor colors={project.step === 2 ? resolvePalette(project.style).colors : undefined} />
       <PasswordResetModal open={recovering} onDone={clearRecovering} />
       {openingStatus && (
         <div className="opening-overlay">
