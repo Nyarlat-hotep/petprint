@@ -1,23 +1,49 @@
 import { renderWordCloudToCanvas } from './renderWordCloud'
 import { resolvePalette } from '../styles/palettes'
 
-const SIZES = {
-  '5x7':   { wIn: 5,  hIn: 7  },
-  '8x10':  { wIn: 8,  hIn: 10 },
-  '11x14': { wIn: 11, hIn: 14 },
-  '16x20': { wIn: 16, hIn: 20 },
-}
+// Aspect ratios the user can pick on the preview stage, expressed as
+// short:long so we can derive the short edge from a chosen long edge.
+export const ASPECT_RATIOS = [
+  { id: '1:1', short: 1, long: 1 },
+  { id: '4:5', short: 4, long: 5 },
+  { id: '5:7', short: 5, long: 7 },
+  { id: '2:3', short: 2, long: 3 },
+]
+// Print sizes are chosen by their long edge in inches; the short edge follows
+// from the selected aspect ratio. (4:5 @ 10in long = the classic 8×10.)
+const LONG_EDGES = [7, 10, 14, 20]
 const DPI = 300
 
-export async function exportPng(project, sizeKey) {
-  if (!project.maskBitmap) throw new Error('No silhouette to render.')
-  const size = SIZES[sizeKey]
-  if (!size) throw new Error(`Unknown size: ${sizeKey}`)
+function ratioFor(style) {
+  return ASPECT_RATIOS.find((a) => a.id === style?.aspectRatio) || ASPECT_RATIOS[1]
+}
 
-  const silAspect = project.maskBitmap.width / project.maskBitmap.height
-  const portrait = silAspect <= 1
-  let w = Math.round((portrait ? size.wIn : size.hIn) * DPI)
-  let h = Math.round((portrait ? size.hIn : size.wIn) * DPI)
+// Resolve the printed dimensions (in inches) for a style + chosen long edge.
+// Orientation decides which axis gets the long edge; '1:1' ignores it.
+export function computeInches(style, longEdgeIn) {
+  const ar = ratioFor(style)
+  const longIn = longEdgeIn
+  const shortIn = (longEdgeIn * ar.short) / ar.long
+  const portrait = (style?.orientation || 'portrait') === 'portrait'
+  return portrait ? { wIn: shortIn, hIn: longIn } : { wIn: longIn, hIn: shortIn }
+}
+
+// Trim to a clean label, e.g. 8 × 10 or 7.1 × 10.
+function fmtIn(n) {
+  return Number(n.toFixed(1)).toString()
+}
+export function formatInches(style, longEdgeIn) {
+  const { wIn, hIn } = computeInches(style, longEdgeIn)
+  return `${fmtIn(wIn)} × ${fmtIn(hIn)}`
+}
+
+export async function exportPng(project, longEdgeIn) {
+  if (!project.maskBitmap) throw new Error('No silhouette to render.')
+  if (!LONG_EDGES.includes(longEdgeIn)) throw new Error(`Unknown size: ${longEdgeIn}`)
+
+  const { wIn, hIn } = computeInches(project.style, longEdgeIn)
+  let w = Math.round(wIn * DPI)
+  let h = Math.round(hIn * DPI)
 
   // Memory guard: canvases this large can crash low-memory devices (especially
   // mobile). Each pixel = 4 bytes, so a 4800×6000 canvas = ~115 MB. Scale the
@@ -67,5 +93,5 @@ export async function exportPng(project, sizeKey) {
 }
 
 export function listExportSizes() {
-  return Object.keys(SIZES)
+  return [...LONG_EDGES]
 }

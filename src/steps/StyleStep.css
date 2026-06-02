@@ -688,8 +688,9 @@
 
 .style-step .align-bar {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .style-step .align-group {
@@ -729,6 +730,15 @@
 .style-step .align-btn.active {
   background: #0259DD;
   color: #fff;
+}
+
+.style-step .align-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.style-step .align-btn:disabled:hover {
+  background: transparent;
 }
 
 .style-step .regen-btn {

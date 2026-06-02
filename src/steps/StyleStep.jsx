@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowsClockwise, ArrowLeft, CaretDown, Check, FloppyDisk, Star, X, PencilSimpleLine, DownloadSimple, Printer } from '@phosphor-icons/react'
 import { MAX_NAME_LENGTH, MAX_NAMES, MAX_FAVORITES } from '../state/projectStore'
 import ColorSwatchPicker from '../components/ColorSwatchPicker'
@@ -13,12 +13,12 @@ import DonationModal from '../components/DonationModal'
 import { PALETTES } from '../styles/palettes'
 import { PATTERNS } from '../styles/patterns'
 import WordCloudCanvas from '../components/WordCloudCanvas'
-import { exportPng, listExportSizes } from '../lib/export'
+import { exportPng, listExportSizes, computeInches, formatInches, ASPECT_RATIOS } from '../lib/export'
 import './StyleStep.css'
 
 const EXPORT_SIZES = listExportSizes()
 
-function SizeDropdown({ value, onChange, options, disabled }) {
+function SizeDropdown({ value, onChange, options, disabled, formatLabel }) {
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -48,7 +48,7 @@ function SizeDropdown({ value, onChange, options, disabled }) {
         aria-haspopup="listbox"
         aria-expanded={open}
       >
-        <span>{value} in @ 300 DPI</span>
+        <span>{formatLabel(value)} in @ 300 DPI</span>
         <CaretDown size={14} weight="bold" className="size-caret" />
       </button>
       <ul className="size-menu" role="listbox">
@@ -61,7 +61,7 @@ function SizeDropdown({ value, onChange, options, disabled }) {
               className={`size-option ${s === value ? 'is-selected' : ''}`}
               onClick={() => { onChange(s); setOpen(false) }}
             >
-              <span>{s} in @ 300 DPI</span>
+              <span>{formatLabel(s)} in @ 300 DPI</span>
               {s === value && <Check size={14} weight="bold" />}
             </button>
           </li>
@@ -93,8 +93,40 @@ function AlignIcon({ axis, pos }) {
   )
 }
 
+// Outlined rectangle drawn to a given aspect (w:h), centered in an 18×18 box.
+function ShapeIcon({ w, h }) {
+  const max = 14
+  const scale = max / Math.max(w, h)
+  const rw = w * scale
+  const rh = h * scale
+  return (
+    <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
+      <rect
+        x={(18 - rw) / 2}
+        y={(18 - rh) / 2}
+        width={rw}
+        height={rh}
+        rx="1.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.4"
+      />
+    </svg>
+  )
+}
+
 function AlignmentBar({ style, setStyle, onRegenerate }) {
   const { alignH, alignV } = style
+  const aspectRatio = style.aspectRatio || '4:5'
+  const orientation = style.orientation || 'portrait'
+  const isSquare = aspectRatio === '1:1'
+  const portrait = orientation === 'portrait'
+  // Ratio swatches always preview in the current orientation so the icon
+  // matches what the canvas will become.
+  const ratioDims = (ar) => {
+    if (ar.id === '1:1') return { w: 1, h: 1 }
+    return portrait ? { w: ar.short, h: ar.long } : { w: ar.long, h: ar.short }
+  }
   const hOpts = [
     { id: 'left',   label: 'Align left' },
     { id: 'center', label: 'Align horizontal center' },
@@ -138,6 +170,50 @@ function AlignmentBar({ style, setStyle, onRegenerate }) {
             <AlignIcon axis="v" pos={o.id} />
           </button>
         ))}
+      </div>
+      <div className="align-group" role="radiogroup" aria-label="Aspect ratio">
+        <span className="align-label">Ratio</span>
+        {ASPECT_RATIOS.map((ar) => {
+          const d = ratioDims(ar)
+          return (
+            <button
+              key={ar.id}
+              type="button"
+              className={aspectRatio === ar.id ? 'align-btn active' : 'align-btn'}
+              onClick={() => setStyle({ aspectRatio: ar.id })}
+              title={`${ar.id} ratio`}
+              aria-label={`${ar.id} aspect ratio`}
+              aria-pressed={aspectRatio === ar.id}
+            >
+              <ShapeIcon w={d.w} h={d.h} />
+            </button>
+          )
+        })}
+      </div>
+      <div className="align-group" role="radiogroup" aria-label="Orientation">
+        <span className="align-label">Rotate</span>
+        <button
+          type="button"
+          className={portrait && !isSquare ? 'align-btn active' : 'align-btn'}
+          onClick={() => setStyle({ orientation: 'portrait' })}
+          title="Portrait"
+          aria-label="Portrait orientation"
+          aria-pressed={portrait}
+          disabled={isSquare}
+        >
+          <ShapeIcon w={4} h={5} />
+        </button>
+        <button
+          type="button"
+          className={!portrait && !isSquare ? 'align-btn active' : 'align-btn'}
+          onClick={() => setStyle({ orientation: 'landscape' })}
+          title="Landscape"
+          aria-label="Landscape orientation"
+          aria-pressed={!portrait}
+          disabled={isSquare}
+        >
+          <ShapeIcon w={5} h={4} />
+        </button>
       </div>
       <button
         type="button"
@@ -241,7 +317,7 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
   const { backgroundType, backgroundValue, paletteId } = project.style
   const silhouetteMode = project.style.silhouetteMode === 'none' ? 'none' : 'tint'
 
-  const [size, setSize] = useState('8x10')
+  const [size, setSize] = useState(10)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState(null)
   const [signInOpen, setSignInOpen] = useState(false)
@@ -265,6 +341,20 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
     setTimeout(() => setNamesDrawerMounted(false), 320)
   }
   const canvasWrapRef = useRef(null)
+
+  // Canvas aspect (w/h) follows the chosen ratio + orientation; the silhouette
+  // is fit inside and the leftover area becomes background.
+  const aspect = useMemo(() => {
+    const { wIn, hIn } = computeInches(project.style, 10)
+    return wIn / hIn
+  }, [project.style.aspectRatio, project.style.orientation])
+
+  // Letterbox the canvas to that aspect within the available wrap bounds.
+  const fitted = useMemo(() => {
+    const { width, height } = canvasBounds
+    if (width / height > aspect) return { w: Math.floor(height * aspect), h: height }
+    return { w: width, h: Math.floor(width / aspect) }
+  }, [canvasBounds, aspect])
 
   useEffect(() => {
     const el = canvasWrapRef.current
@@ -293,14 +383,14 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `pet-cloud-${size}.png`
+      a.download = `pet-cloud-${formatInches(project.style, size).replace(/\s|×/g, '')}in.png`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
       setTimeout(() => URL.revokeObjectURL(url), 1000)
       setDonationOpen(false)
     } catch (e) {
-      setError(`Could not render at ${size}. Try a smaller size. (${e.message})`)
+      setError(`Could not render at ${formatInches(project.style, size)} in. Try a smaller size. (${e.message})`)
     } finally {
       setBusy(false)
     }
@@ -356,7 +446,7 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
 
       setDonationOpen(false)
     } catch (e) {
-      setError(`Could not prepare for printing at ${size}. (${e.message})`)
+      setError(`Could not prepare for printing at ${formatInches(project.style, size)} in. (${e.message})`)
     } finally {
       setBusy(false)
     }
@@ -552,6 +642,7 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
             onChange={setSize}
             options={EXPORT_SIZES}
             disabled={busy}
+            formatLabel={(s) => formatInches(project.style, s)}
           />
           {error && <p className="download-error">{error}</p>}
         </fieldset>
@@ -564,7 +655,7 @@ export default function StyleStep({ project, dispatch, onSavesChanged }) {
             onRegenerate={() => dispatch({ type: 'REGENERATE' })}
           />
           <div className="preview-canvas-wrap" ref={canvasWrapRef}>
-            <WordCloudCanvas project={project} maxWidth={canvasBounds.width} maxHeight={canvasBounds.height} />
+            <WordCloudCanvas project={project} maxWidth={fitted.w} maxHeight={fitted.h} />
           </div>
           <button
             type="button"
