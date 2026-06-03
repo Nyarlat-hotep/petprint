@@ -4,15 +4,17 @@ import { shapeToMaskBitmap } from '../lib/shapeMask'
 import WordCloudCanvas from './WordCloudCanvas'
 import './SplashBackground.css'
 
+// Nicknames and variations all riffing on a single pet named "Fluffy" —
+// showcases how one pet's many names fill the cloud.
 const DEMO_NAMES = [
-  'Whiskers', 'Mittens', 'Tigger', 'Princess', 'Shadow', 'Pumpkin',
-  'Mochi', 'Sir Fluff', 'Biscuit', 'Pepper', 'Luna', 'Oliver',
-  'Bean', 'Noodle', 'Pickle', 'Mr. Boots', 'Boo', 'Cinder',
-  'Smokey', 'Ginger', 'Marble', 'Toffee', 'Hazel', 'Fig',
-  'Clover', 'Sunny', 'Tofu', 'Dumpling', 'Mango', 'Olive',
-  'Pip', 'Sage', 'Wren', 'Honey', 'Maple', 'Cricket',
-  'Goose', 'Pebble', 'Salt', 'Pepper', 'Cosmo', 'Atlas',
-  'Snickers', 'Waffle', 'Pancake', 'Muffin', 'Mochi', 'Coco',
+  'Fluffy', 'Fluff', 'Fluffers', 'Fluffster', 'Fluffy Boo', 'Fluffball',
+  'Mr. Fluffy', 'Fluffykins', 'Fluffaroo', 'Fluffalump', 'Sir Fluff', 'Fluffy Butt',
+  'Fluffington', 'Fluffy Pie', 'Fluffmeister', 'Fluffles', 'Fluffy Bear', 'Fluffanator',
+  'Fluffernutter', 'Fluffy Tail', 'Lil Fluff', 'Big Fluff', 'Fluffy Boi', 'Fluffysaurus',
+  'Fluffy Bug', 'Fluffy Paws', 'Fluffypants', 'Fluffaluffagus', 'Captain Fluff', 'Fluffy Cloud',
+  'Fluffy Moo', 'Fluffernoodle', 'Fluffy Floof', 'Floofy', 'Floof', 'Floofster',
+  'Fluffy Bean', 'Fluffy Roo', 'Fluffy Goose', 'Fluffinator', 'Fluffykins Jr.', 'Fluffy Pop',
+  'Fluffy Muffin', 'Fluffy Cakes', 'Fluffy Toes', 'Fluffy Nugget', 'Fluffy Wuffy', 'Fluffy McFluff',
 ]
 
 export default function SplashBackground() {

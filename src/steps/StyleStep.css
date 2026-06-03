@@ -74,7 +74,7 @@
   padding: 10px 12px;
   font-size: 14px;
   border: 1px solid #93c5fd;
-  border-radius: 6px;
+  border-radius: 25px;
   background: #fff;
   outline: none;
 }
@@ -126,7 +126,7 @@
 }
 
 .style-step .names-chip.is-fav {
-  background: #ffe4e6;
+  background: #bfdbfe;
 }
 
 .style-step .names-chip .chip-text {
@@ -175,8 +175,8 @@
 }
 
 .style-step .names-chip.is-fav .chip-x {
-  background: #fda4af;
-  color: #881337;
+  background: #bfdbfe;
+  color: #0a2872;
 }
 
 .style-step .names-chip .chip-x:hover {

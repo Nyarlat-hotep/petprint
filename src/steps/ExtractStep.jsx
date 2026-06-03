@@ -23,10 +23,21 @@ export default function ExtractStep({ project, dispatch }) {
     setStatus('working')
     setProgress(null)
     let pending = null
+    // The model downloads as several assets, each reporting its own bytes.
+    // Aggregate them into one overall percentage so the bar moves smoothly.
+    const fetchTotals = {}
     ;(async () => {
       try {
         pending = removeBackground(project.photoBlob, (key, current, total) => {
-          if (!cancelled && total > 0) setProgress({ key, current, total })
+          if (cancelled) return
+          if (key.startsWith('fetch:')) {
+            fetchTotals[key] = { current, total }
+            let c = 0, t = 0
+            for (const k in fetchTotals) { c += fetchTotals[k].current; t += fetchTotals[k].total }
+            if (t > 0) setProgress({ phase: 'fetch', pct: Math.min(100, Math.round((c / t) * 100)) })
+          } else if (key.startsWith('compute:') && total > 0) {
+            setProgress({ phase: 'compute', pct: Math.min(100, Math.round((current / total) * 100)) })
+          }
         })
         const result = await pending
         if (cancelled) return
@@ -85,12 +96,19 @@ export default function ExtractStep({ project, dispatch }) {
             <PawPrint size={28} weight="fill" />
           </div>
           <p className="loading-text">Sniffing for your pet…</p>
-          {progress && progress.key === 'fetch' ? (
+          {progress && progress.phase === 'fetch' ? (
             <>
               <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${Math.min(100, (progress.current / progress.total) * 100)}%` }} />
+                <div className="progress-fill" style={{ width: `${progress.pct}%` }} />
               </div>
-              <p className="loading-sub">Fetching the magic sniffer ({Math.round((progress.current / progress.total) * 100)}%) — only once, then it lives here.</p>
+              <p className="loading-sub">Fetching the magic sniffer ({progress.pct}%) — only once, then it lives here.</p>
+            </>
+          ) : progress && progress.phase === 'compute' ? (
+            <>
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${progress.pct}%` }} />
+              </div>
+              <p className="loading-sub">Found them — tracing the outline…</p>
             </>
           ) : (
             <p className="loading-sub">First time? Just fetching the magic sniffer (~30 MB) — only happens once.</p>

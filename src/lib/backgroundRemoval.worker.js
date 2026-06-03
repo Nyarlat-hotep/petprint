@@ -1,17 +1,40 @@
-import { removeBackground as imglyRemoveBackground } from '@imgly/background-removal'
+import {
+  removeBackground as imglyRemoveBackground,
+  preload as imglyPreload,
+} from '@imgly/background-removal'
 import { binarize, boundingBox, cropMask } from './mask'
 
-self.onmessage = async (e) => {
-  const { blob } = e.data
+// Single config object reused for both preload and the real run. @imgly
+// memoizes its model/session init keyed on JSON.stringify(config) (functions
+// like `progress` are dropped by JSON), so preloading warms the exact session
+// the run then reuses — no second download or init.
+const CONFIG = {
+  model: 'isnet_fp16',
+  device: 'gpu',
+  output: { format: 'image/png', quality: 1 },
+}
+
+const progress = (key, current, total) =>
+  self.postMessage({ type: 'progress', key, current, total })
+
+// Serialize everything: the ONNX session can only run one inference at a time,
+// so overlapping runs (e.g. a cancelled run still finishing when the next
+// starts) would throw "session already started". Chaining guarantees one job
+// at a time while still reusing the warm, memoized session.
+let chain = Promise.resolve()
+
+self.onmessage = (e) => {
+  const { type, blob, id } = e.data
+  if (type === 'preload') {
+    chain = chain.then(() => imglyPreload({ ...CONFIG, progress }).catch(() => {}))
+  } else if (type === 'run') {
+    chain = chain.then(() => runJob(id, blob))
+  }
+}
+
+async function runJob(id, blob) {
   try {
-    const cutoutBlob = await imglyRemoveBackground(blob, {
-      model: 'isnet_fp16',
-      device: 'gpu',
-      output: { format: 'image/png', quality: 1 },
-      progress: (key, current, total) => {
-        self.postMessage({ type: 'progress', key, current, total })
-      },
-    })
+    const cutoutBlob = await imglyRemoveBackground(blob, { ...CONFIG, progress })
 
     // Post-process here so the main thread never touches the full-resolution
     // ImageData. Returns a structured bitmap ready for the project store.
@@ -37,6 +60,7 @@ self.onmessage = async (e) => {
     self.postMessage(
       {
         type: 'done',
+        id,
         result: {
           mask: cropped,
           width: bbox.w,
@@ -50,6 +74,6 @@ self.onmessage = async (e) => {
       [cropped.buffer],
     )
   } catch (err) {
-    self.postMessage({ type: 'error', message: err?.message || String(err) })
+    self.postMessage({ type: 'error', id, message: err?.message || String(err) })
   }
 }

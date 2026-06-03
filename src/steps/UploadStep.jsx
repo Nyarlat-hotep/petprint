@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { Camera, CaretDown } from '@phosphor-icons/react'
 import { isHeic } from '../lib/savedProjects'
+import { prefetchModel } from '../lib/backgroundRemoval'
 import { shapeToMaskBitmap } from '../lib/shapeMask'
 import { SHAPES } from '../styles/shapes'
 import './UploadStep.css'
@@ -76,7 +77,7 @@ export default function UploadStep({ project, dispatch }) {
 
       <div
         className={`drop-zone ${dragOver ? 'is-over' : ''} ${project.photoUrl ? 'has-photo' : ''}`}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); prefetchModel() }}
         onDragLeave={() => setDragOver(false)}
         onDrop={(e) => {
           e.preventDefault()
@@ -87,6 +88,9 @@ export default function UploadStep({ project, dispatch }) {
         }}
         onClick={() => {
           if (recentDropRef.current) return
+          // User intends to use a photo — start warming the model now so the
+          // ~30 MB download overlaps with them browsing for / reviewing a file.
+          prefetchModel()
           inputRef.current?.click()
         }}
       >

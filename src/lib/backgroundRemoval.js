@@ -1,61 +1,85 @@
 import BackgroundRemovalWorker from './backgroundRemoval.worker.js?worker'
 
-export function prefetchModel() {
-  // No-op — kept for API compatibility. The worker fetches the model on first
-  // use; browser HTTP cache covers subsequent runs.
-  return Promise.resolve()
+// One persistent worker for the whole session. The model (~30 MB) and the
+// ONNX session are downloaded/built once and reused across runs — so prefetch
+// during the upload step makes the actual extraction near-instant.
+let worker = null
+let prefetched = false
+
+function getWorker() {
+  if (!worker) worker = new BackgroundRemovalWorker()
+  return worker
 }
 
 /**
- * Runs background removal in a worker. Returns a cancellable handle:
- *   const { promise, cancel } = removeBackground(blob, onProgress)
- *   ...later: cancel()  // terminates the worker if still running
+ * Warm the model + session ahead of the extraction step. Safe to call multiple
+ * times — only the first kicks off the (single) download. Fire-and-forget.
+ */
+export function prefetchModel() {
+  if (prefetched) return Promise.resolve()
+  prefetched = true
+  try { getWorker().postMessage({ type: 'preload' }) } catch { /* ignore */ }
+  return Promise.resolve()
+}
+
+let nextId = 0
+
+/**
+ * Runs background removal in the shared worker. Returns a cancellable promise:
+ *   const p = removeBackground(blob, onProgress); ...later: p.cancel()
  *
- * Calling `cancel()` after completion is a no-op. The returned promise
- * rejects with an Error tagged `aborted: true` so callers can distinguish
- * a deliberate cancellation from a real failure.
+ * `cancel()` detaches from the in-flight result (the worker keeps its warm
+ * session for next time) and rejects with an Error tagged `aborted: true`.
  */
 export function removeBackground(blob, onProgress) {
-  const worker = new BackgroundRemovalWorker()
+  const w = getWorker()
+  const id = ++nextId
   let settled = false
   let rejectFn = null
 
-  function cleanup() {
-    settled = true
-    try { worker.terminate() } catch {} // eslint-disable-line no-empty
+  function detach() {
+    w.removeEventListener('message', onMessage)
+    w.removeEventListener('error', onError)
   }
 
+  function onMessage(e) {
+    const msg = e.data
+    if (msg.type === 'progress') {
+      if (!settled) onProgress?.(msg.key, msg.current, msg.total)
+      return
+    }
+    if (msg.id !== id || settled) return // stale/cancelled run finishing late
+    settled = true
+    detach()
+    if (msg.type === 'done') resolveFn(msg.result)
+    else if (msg.type === 'error') rejectFn(new Error(msg.message))
+  }
+
+  function onError(err) {
+    if (settled) return
+    settled = true
+    detach()
+    rejectFn(err instanceof Error ? err : new Error(err.message || 'Worker error'))
+  }
+
+  let resolveFn = null
   const promise = new Promise((resolve, reject) => {
+    resolveFn = resolve
     rejectFn = reject
-    worker.onmessage = (e) => {
-      const msg = e.data
-      if (msg.type === 'progress') {
-        if (!settled) onProgress?.(msg.key, msg.current, msg.total)
-      } else if (msg.type === 'done') {
-        if (!settled) { cleanup(); resolve(msg.result) }
-      } else if (msg.type === 'error') {
-        if (!settled) { cleanup(); reject(new Error(msg.message)) }
-      }
-    }
-    worker.onerror = (err) => {
-      if (!settled) {
-        cleanup()
-        reject(err instanceof Error ? err : new Error(err.message || 'Worker error'))
-      }
-    }
-    worker.postMessage({ blob })
+    w.addEventListener('message', onMessage)
+    w.addEventListener('error', onError)
+    w.postMessage({ type: 'run', id, blob })
   })
 
   function cancel() {
     if (settled) return
+    settled = true
+    detach()
     const err = new Error('Background removal cancelled.')
     err.aborted = true
-    cleanup()
-    rejectFn?.(err)
+    rejectFn(err)
   }
 
-  // Attach cancel to the promise itself for backward-compatible `await` callers,
-  // and also expose the structured handle.
   promise.cancel = cancel
   return promise
 }
