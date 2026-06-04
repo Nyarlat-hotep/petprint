@@ -16,6 +16,10 @@ export async function renderWordCloudToCanvas({
   silhouetteImageUrl, silhouetteSvg, silhouetteBbox,
   silhouetteSourceWidth, silhouetteSourceHeight,
   names, seed, style, palette,
+  // When provided, words fade/scale in from the foreground instead of being
+  // painted instantly. `{ isCancelled: () => boolean }` lets the caller stop
+  // the rAF loop on unmount. Used by the splash showcase only.
+  animation,
 }) {
   const w = canvas.width
   const h = canvas.height
@@ -156,19 +160,101 @@ export async function renderWordCloudToCanvas({
     }
   }
 
-  for (const p of placements) {
+  // Close the alignment-translate used for the silhouette tint. Words manage
+  // their own transform below (static draw, or an animated entrance).
+  ctx.restore()
+
+  if (animation) {
+    await animateWords({ ctx, canvas, placements, offsetX, offsetY, w, h, animation })
+    return
+  }
+
+  ctx.save()
+  ctx.translate(offsetX, offsetY)
+  for (const p of placements) drawPlacement(ctx, p)
+  ctx.restore()
+}
+
+// Draw one placed word, optionally transformed for the entrance animation.
+// Scaling/rotation happen around the word's own center (cx, cy).
+function drawPlacement(ctx, p, alpha = 1, scale = 1, dx = 0, dy = 0) {
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.font = `${p.fontWeight} ${p.fontSize}px "${p.fontFamily}", sans-serif`
+  ctx.fillStyle = p.color
+  ctx.textBaseline = 'middle'
+  ctx.textAlign = 'center'
+  ctx.translate(p.cx + dx, p.cy + dy)
+  if (scale !== 1) ctx.scale(scale, scale)
+  if (p.rotation) ctx.rotate((p.rotation * Math.PI) / 180)
+  ctx.fillText(p.text, 0, 0)
+  ctx.restore()
+}
+
+// Entrance animation: each word eases from large + transparent (foreground)
+// down into its final spot, fading in. Words cascade largest-first. The
+// background + silhouette were already painted to the canvas, so we snapshot
+// them and recomposite each frame under the animating words.
+function animateWords({ ctx, canvas, placements, offsetX, offsetY, w, h, animation }) {
+  const N = placements.length
+  if (N === 0) return Promise.resolve()
+
+  const base = document.createElement('canvas')
+  base.width = w
+  base.height = h
+  base.getContext('2d').drawImage(canvas, 0, 0)
+
+  // Largest words appear first so the headline nicknames lead the cascade.
+  const order = placements.map((_, i) => i).sort((a, b) => placements[b].fontSize - placements[a].fontSize)
+  const STAGGER_MS = 900   // window over which words begin
+  const WORD_MS = 650      // each word's own ease-in duration
+  const step = N > 1 ? STAGGER_MS / N : 0
+  const delays = new Array(N)
+  order.forEach((idx, k) => { delays[idx] = k * step })
+  const total = STAGGER_MS + WORD_MS
+
+  const START_SCALE = 2.0
+  const DRIFT = 0.06           // subtle outward start, pulls inward as it settles
+  const cx0 = w / 2
+  const cy0 = h / 2
+  const easeOut = (t) => 1 - Math.pow(1 - t, 3)
+
+  function paintFinal() {
+    ctx.clearRect(0, 0, w, h)
+    ctx.drawImage(base, 0, 0)
     ctx.save()
-    ctx.font = `${p.fontWeight} ${p.fontSize}px "${p.fontFamily}", sans-serif`
-    ctx.fillStyle = p.color
-    ctx.textBaseline = 'middle'
-    ctx.textAlign = 'center'
-    ctx.translate(p.cx, p.cy)
-    if (p.rotation) ctx.rotate((p.rotation * Math.PI) / 180)
-    ctx.fillText(p.text, 0, 0)
+    ctx.translate(offsetX, offsetY)
+    for (let i = 0; i < N; i++) drawPlacement(ctx, placements[i])
     ctx.restore()
   }
 
-  ctx.restore()
+  return new Promise((resolve) => {
+    let startTs = null
+    function frame(ts) {
+      if (animation.isCancelled?.()) { paintFinal(); resolve(); return }
+      if (startTs == null) startTs = ts
+      const elapsed = ts - startTs
+
+      ctx.clearRect(0, 0, w, h)
+      ctx.drawImage(base, 0, 0)
+      ctx.save()
+      ctx.translate(offsetX, offsetY)
+      for (let i = 0; i < N; i++) {
+        const lt = Math.min(1, Math.max(0, (elapsed - delays[i]) / WORD_MS))
+        if (lt <= 0) continue
+        const e = easeOut(lt)
+        const p = placements[i]
+        const scale = START_SCALE + (1 - START_SCALE) * e
+        const drift = DRIFT * (1 - e)
+        drawPlacement(ctx, p, e, scale, (p.cx - cx0) * drift, (p.cy - cy0) * drift)
+      }
+      ctx.restore()
+
+      if (elapsed < total) requestAnimationFrame(frame)
+      else { paintFinal(); resolve() }
+    }
+    requestAnimationFrame(frame)
+  })
 }
 
 function packWords(words, mask, maskW, maskH, ctx, seed, fillOpts = {}) {

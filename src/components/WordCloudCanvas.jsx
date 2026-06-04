@@ -16,7 +16,7 @@ function useDebouncedNames(names, delay = 350) {
   return debounced
 }
 
-export default function WordCloudCanvas({ project, width, maxWidth, maxHeight }) {
+export default function WordCloudCanvas({ project, width, maxWidth, maxHeight, animate = false }) {
   // Back-compat: legacy `width` prop becomes the max width with no height cap.
   const boundW = maxWidth ?? width ?? 580
   const boundH = maxHeight ?? Infinity
@@ -54,16 +54,8 @@ export default function WordCloudCanvas({ project, width, maxWidth, maxHeight })
     // background + silhouette tint and skips the (empty) word pass.
     const { mask } = project.maskBitmap
 
-    // Render to an offscreen buffer first, then swap it in on completion —
-    // keeps the previous frame painted while async work (pattern load, packer)
-    // runs, so dragging style sliders doesn't flash a blank canvas.
-    const off = document.createElement('canvas')
-    off.width = renderW
-    off.height = renderH
-
     let cancelled = false
-    renderWordCloudToCanvas({
-      canvas: off,
+    const args = {
       mask,
       maskWidth: mw,
       maskHeight: mh,
@@ -76,7 +68,29 @@ export default function WordCloudCanvas({ project, width, maxWidth, maxHeight })
       seed: deferredSeed,
       style: deferredStyle,
       palette: resolvePalette(deferredStyle),
-    }).then(() => {
+    }
+
+    if (animate) {
+      // Animated entrance: render straight to the visible canvas and let the
+      // renderer run its own rAF loop. No offscreen swap needed.
+      renderWordCloudToCanvas({
+        canvas,
+        ...args,
+        animation: { isCancelled: () => cancelled },
+      }).catch((e) => {
+        if (!cancelled) console.error('Word cloud render failed:', e)
+      })
+      return () => { cancelled = true }
+    }
+
+    // Render to an offscreen buffer first, then swap it in on completion —
+    // keeps the previous frame painted while async work (pattern load, packer)
+    // runs, so dragging style sliders doesn't flash a blank canvas.
+    const off = document.createElement('canvas')
+    off.width = renderW
+    off.height = renderH
+
+    renderWordCloudToCanvas({ canvas: off, ...args }).then(() => {
       if (cancelled) return
       const ctx = canvas.getContext('2d')
       ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -85,7 +99,7 @@ export default function WordCloudCanvas({ project, width, maxWidth, maxHeight })
       if (!cancelled) console.error('Word cloud render failed:', e)
     })
     return () => { cancelled = true }
-  }, [project.maskBitmap, deferredNames, deferredStyle, deferredSeed, boundW, boundH])
+  }, [project.maskBitmap, deferredNames, deferredStyle, deferredSeed, boundW, boundH, animate])
 
   return <canvas ref={canvasRef} className="wordcloud-canvas" />
 }

@@ -19,6 +19,9 @@ const DEMO_NAMES = [
 
 export default function SplashBackground() {
   const [project, setProject] = useState(null)
+  // Animate the cloud's entrance, unless the user prefers reduced motion.
+  const animate = typeof window !== 'undefined'
+    && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
   useEffect(() => {
     let cancelled = false
@@ -49,7 +52,7 @@ export default function SplashBackground() {
     <div className="splash-showcase" aria-hidden="true">
       {project && (
         <div className="splash-showcase-cloud">
-          <WordCloudCanvas project={project} maxWidth={520} maxHeight={520} />
+          <WordCloudCanvas project={project} maxWidth={520} maxHeight={520} animate={animate} />
         </div>
       )}
     </div>
